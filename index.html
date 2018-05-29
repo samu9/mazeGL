@@ -1,0 +1,90 @@
+<!DOCTYPE html> 
+<html> 
+    <head> 
+        <meta charset=utf-8> 
+        <title>Three.js</title> 
+    </head> 
+    <body> 
+        <div id = "parameters"></div>
+        <div id = "ids"></div>
+
+        <link rel="stylesheet" type="text/css" href="css/style.css">
+        <script src="js/three.js"></script>
+        <script src="js/OrbitControls.js"></script>
+        <script src="js/PointerLockControls.js"></script>
+        <script src="js/stats.min.js"></script>
+
+        <script src="js/functions.js"></script>
+        <script src="js/init.js"></script>
+        <script src="js/animate.js"></script>
+        <script>
+
+
+
+
+            var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
+            if ( havePointerLock ) {
+                var element = document.body;
+                var pointerlockchange = function ( event ) {
+                    if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
+                        controlsEnabled = true;
+                        controls.enabled = true;
+                    } else {
+                        controls.enabled = false;
+                    }
+                };
+                var pointerlockerror = function ( event ) {
+                };
+                // Hook pointer lock state change events
+                document.addEventListener( 'pointerlockchange', pointerlockchange, false );
+                document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
+                document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
+                document.addEventListener( 'pointerlockerror', pointerlockerror, false );
+                document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
+                document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
+                document.addEventListener( 'click', function ( event ) {
+                    // Ask the browser to lock the pointer
+                    element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
+                    element.requestPointerLock();  
+                }, false );
+            } 
+            
+
+            var scene, camera, renderer;
+            var controls;
+            var texture, material;
+
+            var box,light;
+
+            var roomW = 50;
+            var roomH = 50;
+            var gridDim = 9;
+            var map = {};
+
+            var controlsEnabled = false;
+            var moveForward = false;
+            var moveBackward = false;
+            var moveLeft = false;
+            var moveRight = false;
+            var prevTime = performance.now();
+            var velocity = new THREE.Vector3();
+            
+            var gridPos = [0, 0];
+            var newGridPos = [0, 0];
+
+            var paramBox = document.getElementById("parameters");
+            var ids = document.getElementById("ids");
+
+
+            var stats = new Stats();
+            stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+            document.body.appendChild( stats.dom );
+
+            init();
+
+            animate();
+           
+        </script>
+
+    </body> 
+</html>
