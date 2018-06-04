@@ -14,6 +14,7 @@
         <script src="js/PointerLockControls.js"></script>
         <script src="js/stats.min.js"></script>
 
+        <script src="js/utilities.js"></script>
         <script src="js/functions.js"></script>
         <script src="js/init.js"></script>
         <script src="js/animate.js"></script>
@@ -53,13 +54,17 @@
             var scene, camera, renderer;
             var controls;
             var texture, material;
+            var wallTexture, floorTexture, wallMaterial, floorMaterial;
+            var plane;
 
             var box,light;
-
+            
             var roomW = 50;
             var roomH = 50;
             var gridDim = 9;
-            var map = {};
+            var halfGrid = Math.floor(gridDim/2);
+            var meshMap = {};
+            var mazeMap = {};
 
             var controlsEnabled = false;
             var moveForward = false;
@@ -71,6 +76,8 @@
             
             var gridPos = [0, 0];
             var newGridPos = [0, 0];
+
+            var nextBlocks = [];
 
             var paramBox = document.getElementById("parameters");
             var ids = document.getElementById("ids");

@@ -1,148 +1,154 @@
-function genBlock(bX, bZ,type,angle){
-    if(bX + "-" + bZ in map)
-        return;
-    
-    var wallTexture, floorTexture, wallMaterial, floorMaterial;
-    var leftWall, rightWall, frontWall;
-    //var blockGeometry = new THREE.Geometry();
-    //walls
-    wallTexture = new THREE.TextureLoader().load( "textures/stonewall.jpeg" );
-    wallTexture.wrapS = THREE.RepeatWrapping;
-    wallTexture.wrapT = THREE.RepeatWrapping;
-    wallTexture.repeat.set( 4, 4 );
-    wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, side: THREE.DoubleSide});
-    
-    var wallGeometry = new THREE.PlaneGeometry(roomH, roomH, 80, 80);
-    //wall.translate(-roomW/2 + (bX*roomW),roomW/2,(bZ*roomH));
-    //wall.rotateY(Math.PI/2);
-    //blockGeometry.merge(rightWall.geometry,rightWall.matrix);
-    //var block = new THREE.Mesh(blockGeometry, wallMaterial);
+function genBlock(pos,wallsFlag){
+    //se il blocco esiste già oppure è fuori dalla griglia non lo creo 
+    if(pos[0] + "-" + pos[1] in mazeMap){
+        console.log("Block already exists in: [" + pos[0] + "," + pos[1] + "]");
+        return false;
+    }
+
+    var walls = [];
+
+    //left (looking in the direction of negative z)
+    walls[0] = new THREE.Mesh(plane,wallMaterial);
+    walls[0].position.set(-roomW/2 + (pos[0]*roomW),roomW/2,(pos[1]*roomH));
+    walls[0].rotation.set(0,Math.PI/2,0);
+
+    //front (looking in the direction of negative z)
+    walls[1] = new THREE.Mesh(plane,wallMaterial);
+    walls[1].position.set((pos[0]*roomW),roomW/2,- roomW/2 + (pos[1]*roomH));
+    walls[1].rotation.set(0,Math.PI,0);
+
+    //right (looking in the direction of negative z)
+    walls[2] = new THREE.Mesh(plane,wallMaterial);
+    walls[2].position.set(roomW/2 + (pos[0]*roomW),roomW/2,(pos[1]*roomH));
+    walls[2].rotation.set(0,Math.PI/2,0);
+
+    //back (looking in the direction of negative z)
+    walls[3] = new THREE.Mesh(plane,wallMaterial);
+    walls[3].position.set((pos[0]*roomW),roomW/2,+roomW/2 + (pos[1]*roomH));
+    walls[3].rotation.set(0,Math.PI,0);
 
     //floor and ceiling
-    floorTexture = new THREE.TextureLoader().load( "textures/stonefloor.png" );
-    floorTexture.wrapS = THREE.RepeatWrapping;
-    floorTexture.wrapT = THREE.RepeatWrapping;
-    floorTexture.repeat.set( 16, 16 );
-    floorMaterial = new THREE.MeshLambertMaterial({map: floorTexture, side: THREE.DoubleSide});
-    var plane = new THREE.PlaneBufferGeometry(roomW, roomH, 8, 8);
     var floor = new THREE.Mesh(plane, floorMaterial);
     var ceiling = new THREE.Mesh(plane, wallMaterial);
-
-    //ruoto e traslo 
-    floor.position.set((bX*roomW),0,(bZ*roomH));
+    floor.position.set((pos[0]*roomW),0,(pos[1]*roomH));
     floor.rotation.set(Math.PI/2,0,0);
-    ceiling.position.set((bX*roomW),roomH,(bZ*roomH));   
+    ceiling.position.set((pos[0]*roomW),roomH,(pos[1]*roomH));   
     ceiling.rotation.set(Math.PI/2,0,0);
 
     scene.add(floor);
     scene.add(ceiling);
 
-    
-    switch (type){
-        case 0: //dritto
-            leftWall = new THREE.Mesh(wallGeometry,wallMaterial);
-            rightWall = new THREE.Mesh(wallGeometry,wallMaterial);
-            leftWall.position.set(-roomW/2 + (bX*roomW),roomW/2,(bZ*roomH));
-            leftWall.rotation.set(0,Math.PI/2,0);
-            rightWall.position.set(roomW/2 + (bX*roomW),roomW/2,(bZ*roomH));
-            rightWall.rotation.set(0,Math.PI/2,0);
-            scene.add(leftWall);
-            scene.add(rightWall);
-            map[bX + "-" + bZ] = floor.id + "-" + leftWall.id + "-" + rightWall.id + "-" + ceiling.id;
-            break;
-        case 1: //svolta a sinistra
-            rightWall = new THREE.Mesh(wallGeometry,wallMaterial);
-            frontWall = new THREE.Mesh(wallGeometry,wallMaterial);
-            frontWall.position.set((bX*roomW),roomW/2,- roomW/2 + (bZ*roomH));
-            frontWall.rotation.set(0,Math.PI,0);
-            rightWall.position.set(roomW/2 + (bX*roomW),roomW/2,(bZ*roomH));
-            rightWall.rotation.set(0,Math.PI/2,0);
-            scene.add(rightWall);
-            scene.add(frontWall);
-            map[bX + "-" + bZ] = floor.id + "-" + rightWall.id + "-" + frontWall.id + "-" + ceiling.id;
-            break;
-        case 2: //svolta a destra
-            leftWall = new THREE.Mesh(wallGeometry,wallMaterial);
-            frontWall = new THREE.Mesh(wallGeometry,wallMaterial);
-            frontWall.position.set((bX*roomW),roomW/2,-roomH/2 + (bZ*roomH));
-            frontWall.rotation.set(0,Math.PI,0);
-            leftWall.position.set(-roomW/2 + (bX*roomW),roomW/2,(bZ*roomH));
-            leftWall.rotation.set(0,Math.PI/2,0);
-            scene.add(frontWall);
-            scene.add(rightWall);
-            map[bX + "-" + bZ] = floor.id + "-" + frontWall.id + "-" + leftWall.id + "-" + ceiling.id;
-            break;
-        case 3: //bivio
-            frontWall = new THREE.Mesh(wallGeometry,wallMaterial);
-            frontWall.position.set((bX*roomW),roomW/2,-roomH/2 + (bZ*roomH));
-            frontWall.rotation.set(0,Math.PI,0);
-            scene.add(frontWall);
-            map[bX + "-" + bZ] = floor.id + "-" + "-" + frontWall.id + "-" + ceiling.id;
-            break;
-        case 4: //vicolo cieco
-            leftWall = new THREE.Mesh(wallGeometry,wallMaterial);
-            rightWall = new THREE.Mesh(wallGeometry,wallMaterial);
-            frontWall = new THREE.Mesh(wallGeometry,wallMaterial);
-            leftWall.position.set(-roomW/2 + (bX*roomW),roomW/2,(bZ*roomH));
-            leftWall.rotation.set(0,Math.PI/2,0);
-            rightWall.position.set(roomW/2 + (bX*roomW),roomW/2,(bZ*roomH));
-            rightWall.rotation.set(0,Math.PI/2,0);
-            frontWall.position.set((bX*roomW),roomW/2,-roomH/2 + (bZ*roomH));
-            frontWall.rotation.set(0,Math.PI,0);
-            scene.add(leftWall);
-            scene.add(rightWall);
-            scene.add(frontWall);
-            map[bX + "-" + bZ] = floor.id + "-" + leftWall.id + "-" + rightWall.id + "-" + ceiling.id + "-" + frontWall.id;
-            break;
-        case 5: //dritto di lato
-            leftWall = new THREE.Mesh(wallGeometry,wallMaterial);
-            rightWall = new THREE.Mesh(wallGeometry,wallMaterial);
-            leftWall.position.set((bX*roomW),roomW/2,-roomH/2 + (bZ*roomH));
-            leftWall.rotation.set(0,Math.PI,0);
-            rightWall.position.set((bX*roomW),roomW/2,roomH/2 + (bZ*roomH));
-            rightWall.rotation.set(0,Math.PI,0);
-            scene.add(leftWall);
-            scene.add(rightWall);
-            map[bX + "-" + bZ] = floor.id + "-" + leftWall.id + "-" + rightWall.id + "-" + ceiling.id;
-            break;
+    meshMap[pos[0] + "-" + pos[1]] = floor.id + "-" + ceiling.id;
+    mazeMap[pos[0] + "-" + pos[1]] = wallsFlag;
+
+    for(var i = 0; i < 4; i++){
+        if(wallsFlag[i] == 1){
+            scene.add(walls[i]);
+            meshMap[pos[0] + "-" + pos[1]] += "-" + walls[i].id;
+        }
+            delete walls[i];
     }
 
+    delete floor;
+    delete ceiling;
+    plane.dispose();
+    wallMaterial.dispose();
+    floorMaterial.dispose();
 
-    //light = new THREE.PointLight( 0xffffff, 0.5, 120, 1 );
-    //light.position.set((bX*roomW),25,(bZ*roomH) );
-
-
-    
-    ids.innerHTML = map[bX + "-" + bZ];
-
-
-    //scene.add(blockGeometry);
-    //scene.add(light);
-
-    console.log("block generated at x:" + bX + ", z: " + bZ);
+    console.log("block generated at x:" + pos[0] + ", z: " + pos[1]);
+    return true; 
 }
+
 function remBlock(bX, bZ){
-    if(!(bX + "-" + bZ in map))
-        return;
+    //se il blocco è già vuoto
+    if(!(bX + "-" + bZ in meshMap))
+        return false;
+
     console.log("block deleted at x:" + bX + ", z: " + bZ);
-    var remIds = map[bX + "-" + bZ].split("-");
+    var remIds = meshMap[bX + "-" + bZ].split("-");
     var object;
     for(var i = 0; i < remIds.length; i++){
         object = scene.getObjectById(parseInt(remIds[i]));
         object.geometry.dispose();
-        scene.remove(scene.getObjectById(parseInt(remIds[i])));
+        scene.remove(object);
+        delete object;
     }
-    delete map[bX + "-" + bZ];
+    delete meshMap[bX + "-" + bZ];
     
+    return true;
+}
 
+function labyrinth(){
+    if(nextBlocks.length == 0)
+        return;
+
+    var temp = nextBlocks.shift();
+    //console.log(temp);
+    var blockPos = temp.slice(0,2);
+    var dir = temp.slice(2,4); //in che direzione si entra nel blocco
+
+    //determino l'ingresso del blocco che vado a creare
+    var entrance = directionToWall(dir);
+    var deadEnd = true;
+    var freeWalls = [];
+    var walls = [0,0,0,0];
+    var front = (entrance + 2) % 4;
+    var left = (entrance + 1) % 4;
+    var right = (entrance + 3) % 4;
+    //determino e gestisco i muri liberi del nuovo blocco
+    for(var i = 0; i < 4; i++){
+        if(i != entrance){ //lascio libero l'ingresso
+            if(i == front || i == right){
+                walls[i] = 1;
+                break;
+            }
+            walls[i] = 1;//Math.floor(Math.random()*2); //scelgo casualmente se il lato è libero o no
+            if(walls[i] == 0){ //lato libero
+                deadEnd = false; //so che senza contare da dove arrivo, c'è almeno un'altra parete libera
+                //dovrei controllare se dove c'è un lato libero c'è già un blocco adiacente, in tal caso devo chiudere il lato
+                var wallDir = freeWallToDirection(i);
+                if(!((blockPos[0]+wallDir[0]) + "-" + (blockPos[1]+wallDir[1]) in mazeMap))
+                    freeWalls.push(i); //mi salvo gli indici dei lati liberi
+            }
+        }
+    }
+    console.log(walls);
+    if(blockPos[0] + "-" + blockPos[1] in mazeMap)
+        return;
+
+    if(checkGrid(blockPos)){ //se creo il blocco posso continuare a creare le diramazioni finchè non raggiungo il limite della griglia
+        genBlock(blockPos,walls);
+        var newDir;
+        for(var i = 0; i < freeWalls.length; i++){
+            newDir = freeWallToDirection(freeWalls[i]);
+            var straight = (newDir[0] == 0)? [1,0,1,0] : [0,1,0,1];
+            var newBlockPos = [blockPos[0]+newDir[0],blockPos[1]+newDir[1]];
+            genBlock(newBlockPos,straight);
+            console.log("generated straight in " + newBlockPos);
+            nextBlocks.push([newBlockPos[0]+newDir[0],newBlockPos[1]+newDir[1],newDir[0],newDir[1]]);
+            console.log("pushed: " + [newBlockPos[0]+newDir[0],newBlockPos[1]+newDir[1],newDir[0],newDir[1]]);
+            reorderBlocks();
+        }
+        labyrinth();
+    }
+    else if(!deadEnd) nextBlocks.unshift(temp); //non sono riuscito a creare il blocco (magari perchè è fuori dalla mia griglia), lo rimetto in pila    
 }
 
 
-function labyrinth(bX,bZ){
-    var rand = Math.floor(Math.random() * 2);
-    console.log("rand: " + rand);
-    genBlock(bX,bZ,rand,0);
-    if(rand == 1)
-        genBlock(bX-1,bZ,5,0);
-    
+function clearGrid(pos,dir){
+    var moveDir = (dir[0] == 0)? 1 : 0;
+    var sideDir = (dir[0] == 0)? 0 : 1;
+    var start = pos[sideDir] - halfGrid;
+    var end = pos[sideDir] + halfGrid;
+
+    var axis = pos[moveDir] - dir[moveDir]*halfGrid - dir[moveDir];
+
+    for(var j = start; j <= end; j++){
+        if(moveDir == 1){
+            remBlock(j,axis);
+
+        }
+        else
+            remBlock(axis,j);   
+    }
 }
