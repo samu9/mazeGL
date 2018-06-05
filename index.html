@@ -61,6 +61,9 @@
             
             var roomW = 50;
             var roomH = 50;
+
+            var blockDim = 50;
+            var halfBlock = roomW/2;
             var gridDim = 9;
             var halfGrid = Math.floor(gridDim/2);
             var meshMap = {};
@@ -74,8 +77,9 @@
             var prevTime = performance.now();
             var velocity = new THREE.Vector3();
             
-            var gridPos = [0, 0];
-            var newGridPos = [0, 0];
+            var position = [0,0];
+            var gridPos = [0,0];
+            var newGridPos = [0,0];
 
             var nextBlocks = [];
 

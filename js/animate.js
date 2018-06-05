@@ -3,11 +3,11 @@ var direction = 1;
 function moveBox(){
     var boxW = box.geometry.parameters.width;
     
-    //if((box.position.x - boxW/2) > -roomW/2 && (box.position.x + boxW/2) < roomW/2)
+    //if((box.position.x - boxW/2) > -halfBlock && (box.position.x + boxW/2) < halfBlock)
         
-    if((box.position.x + boxW/2) == roomW/2)
+    if((box.position.x + boxW/2) == halfBlock)
         direction = -1;
-    else if((box.position.x - boxW/2) == -roomW/2)
+    else if((box.position.x - boxW/2) == -halfBlock)
         direction = 1;
 
     box.position.x += direction;
@@ -32,17 +32,14 @@ function animate() {
 
     prevTime = time;
 
-    var posX = Math.round(controls.getObject().position.x * 100) / 100;
-    var posZ = Math.round(controls.getObject().position.z * 100) / 100;
-    
-    newGridPos = [Math.floor((posX - 25) / roomH) + 1, Math.floor((posZ - 25) / roomH) + 1];
-
-    //console.log("x: " + gridPos[0] + " - z: " + gridPos[1]);
+    position = [(controls.getObject().position.x - halfBlock)/blockDim,(controls.getObject().position.z - halfBlock)/blockDim];
+    newGridPos = [Math.floor(position[0]) + 1, Math.floor(position[1]) + 1];
+    //console.log(newGridPos);
+    reorderBlocks();
     
     var direction;
     if((gridPos[0] != newGridPos[0]) || (gridPos[1] != newGridPos[1])){
         direction = [newGridPos[0] - gridPos[0], newGridPos[1] - gridPos[1]];  
-        
         labyrinth();
         //clearGrid(newGridPos,direction); 
         

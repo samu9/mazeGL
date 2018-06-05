@@ -1,3 +1,22 @@
+function sumArrays(a,b){
+    return [a[0]+b[0],a[1]+b[1]];
+}
+
+
+//se il punto nella mappa è libero ritorna true
+function checkMap(pos){
+    if(pos[0] + "-" + pos[1] in mazeMap){
+        console.log("Block already exists in: [" + pos[0] + "," + pos[1] + "]");
+        return false;
+    }
+    return true;
+}
+
+function checkNextBlock(pos,dir){
+    var nextPos = [pos[0]+dir[0],pos[1]+dir[1]];
+    return(checkMap(nextPos));
+}
+
 function freeWallToDirection(w){
     if(w > 3) return [0,0];
     var dir = 
@@ -24,8 +43,10 @@ function checkGrid(pos){
     return true;
 }
 
+
+
 function pointDistance(x,y){
-    return Math.sqrt(Math.pow((x[0] - y[0]),2) + Math.pow((x[1] - y[1]),2));
+    return Math.pow((x[0] - y[0]),2) + Math.pow((x[1] - y[1]),2);
 }
 
 function reorderBlocks(){
@@ -47,6 +68,6 @@ function reorderBlocks(){
         }
     }
     nextBlocks.splice(nearestIndex, 0, nextBlocks.splice(0, 1)[0]);
-    console.log("nearest: " + nearest);
-    return nearest;
+    //console.log("nearest: " + nearest);
+    //return nearest;
 }

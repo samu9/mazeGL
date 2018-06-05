@@ -23,7 +23,7 @@ function init(){
 
 
     //geometry
-    plane = new THREE.PlaneBufferGeometry(roomW, roomH, 8, 8);
+    plane = new THREE.PlaneBufferGeometry(blockDim,blockDim,8,8);
     //textures
     wallTexture = new THREE.TextureLoader().load( "textures/stonewall.jpeg" );
     wallTexture.wrapS = THREE.RepeatWrapping;
@@ -45,7 +45,7 @@ function init(){
     box = new THREE.Mesh( cube, material );
     
     //ruoto e traslo
-    box.position.set(-roomW/2+box.geometry.parameters.width/2,box.geometry.parameters.height/2,0);
+    box.position.set(-blockDim/2+box.geometry.parameters.width/2,box.geometry.parameters.height/2,0);
   */
 
     genBlock([0,0],[1,0,1,1]);
