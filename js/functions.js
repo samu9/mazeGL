@@ -1,6 +1,6 @@
 function genBlock(pos,wallsFlag){
     //se il blocco esiste già oppure è fuori dalla griglia non lo creo 
-    if(!checkMap(pos))
+    if(!checkMap(meshMap,pos))
         return false;
 
     var walls = [];
@@ -59,7 +59,7 @@ function genBlock(pos,wallsFlag){
 
 function remBlock(bX, bZ){
     //se il blocco è già vuoto
-    if(checkMap([bX,bZ]))
+    if(checkMap(meshMap,[bX,bZ]))
         return false;
 
     console.log("block deleted at x:" + bX + ", z: " + bZ);
@@ -89,6 +89,11 @@ function labyrinth(){
         return;
     }
 
+    if(!checkMap(mazeMap,blockPos))
+        return;
+
+        //devo controllare: se è in mazeMap ma non in meshMap devo ricostruirlo, se è anche in meshMap annullo, altrimenti lo genero
+
     var dir = temp.slice(2,4); //in che direzione si entra nel blocco
 
     //determino l'ingresso del blocco che vado a creare
@@ -103,46 +108,50 @@ function labyrinth(){
     //determino e gestisco i muri liberi del nuovo blocco
     for(var i = 0; i < 4; i++){
         if(i != entrance){ //lascio libero l'ingresso
-            walls[i] = Math.floor(Math.random()*2); //scelgo casualmente se il lato è libero o no
+            walls[i] = 0;//Math.floor(Math.random()*2); //scelgo casualmente se il lato è libero o no
+            //if(i == front || i == left) walls[i] = 1; //per debug
             if(walls[i] == 0){ //lato libero
                 deadEnd = false; //so che senza contare da dove arrivo, c'è almeno un'altra parete libera
                 
                 //dovrei controllare se dove c'è un lato libero c'è già un blocco adiacente, in tal caso devo chiudere il lato
                 var wallDir = freeWallToDirection(i);
-                if(checkNextBlock(blockPos,wallDir))
+                if(checkMap(mazeMap,sumArrays(blockPos,wallDir)))
                     freeWalls.push(i); //mi salvo gli indici dei lati liberi 
             }
             
         }
     }
     console.log(walls);
-    if(blockPos[0] + "-" + blockPos[1] in mazeMap)
-        return;
 
-     //se creo il blocco posso continuare a creare le diramazioni finchè non raggiungo il limite della griglia
     genBlock(blockPos,walls); //genero il blocco
+
     var newDir;
     var newBlockPos;
     var straight;
     var straightLength;
     for(var i = 0; i < freeWalls.length; i++){
-        straightLength = Math.floor(Math.random()*halfGrid)+1;
+        straightLength = Math.floor(Math.random()*halfGrid);
+        console.log("straight: " + straightLength);
         //genero un blocco a dritto
         newBlockPos = blockPos;
         newDir = freeWallToDirection(freeWalls[i]);
         straight = (newDir[0] == 0)? [1,0,1,0] : [0,1,0,1];
+        newBlockPos = sumArrays(newBlockPos,newDir);
         
+        if(!genBlock(newBlockPos,straight)) break;
+        newBlockPos = sumArrays(newBlockPos,newDir);
+
         for(var l = 1; l <= straightLength; l++){
-            newBlockPos = sumArrays(newBlockPos,newDir);
-            if(!genBlock(newBlockPos,straight))
-                break;
-            if(!checkMap(sumArrays(newBlockPos,newDir)))
-                break;
+            if(!checkMap(mazeMap,newBlockPos)) break;
+            if(checkMap(mazeMap,sumArrays(newBlockPos,newDir))){
+                if(!genBlock(newBlockPos,straight)) break;
+                newBlockPos = sumArrays(newBlockPos,newDir);
+            }
         }
-        //console.log("generated straight in " + newBlockPos);
-        if(checkNextBlock(newBlockPos,newDir)){
-            nextBlocks.push([newBlockPos[0]+newDir[0],newBlockPos[1]+newDir[1],newDir[0],newDir[1]]);
-            console.log("pushed: " + [newBlockPos[0]+newDir[0],newBlockPos[1]+newDir[1],newDir[0],newDir[1]]);
+    
+        if(checkMap(mazeMap,newBlockPos)){
+            nextBlocks.push([newBlockPos[0],newBlockPos[1],newDir[0],newDir[1]]);
+            console.log("pushed: " + [newBlockPos[0],newBlockPos[1],newDir[0],newDir[1]]);
             //labyrinth();
         }
     }

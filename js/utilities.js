@@ -4,17 +4,12 @@ function sumArrays(a,b){
 
 
 //se il punto nella mappa è libero ritorna true
-function checkMap(pos){
-    if(pos[0] + "-" + pos[1] in mazeMap){
+function checkMap(map,pos){
+    if(pos[0] + "-" + pos[1] in map){
         console.log("Block already exists in: [" + pos[0] + "," + pos[1] + "]");
         return false;
     }
     return true;
-}
-
-function checkNextBlock(pos,dir){
-    var nextPos = [pos[0]+dir[0],pos[1]+dir[1]];
-    return(checkMap(nextPos));
 }
 
 function freeWallToDirection(w){

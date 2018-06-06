@@ -29,8 +29,10 @@ function init(){
     wallTexture.wrapS = THREE.RepeatWrapping;
     wallTexture.wrapT = THREE.RepeatWrapping;
     wallTexture.repeat.set( 4, 4 );
-    //wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, side: THREE.DoubleSide});
-    wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, side: THREE.DoubleSide, transparent: true, opacity: 0.4}); //texture trasparente per debug
+    if(debug)
+        wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, side: THREE.DoubleSide, transparent: true, opacity: 0.4}); //texture trasparente per debug
+    else
+        wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, side: THREE.DoubleSide});
 
     floorTexture = new THREE.TextureLoader().load( "textures/stonefloor.png" );
     floorTexture.wrapS = THREE.RepeatWrapping;
@@ -58,7 +60,8 @@ function init(){
 
     controls = new THREE.PointerLockControls(camera);
     scene.add(controls.getObject());
-    //scene.fog = new THREE.Fog(0x000000,60,150);
+    if(!debug)
+        scene.fog = new THREE.Fog(0x000000,60,150);
     var onKeyDown = function ( event ) {
         switch ( event.keyCode ) {
             case 38: // up

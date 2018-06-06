@@ -58,12 +58,9 @@
             var plane;
 
             var box,light;
-            
-            var roomW = 50;
-            var roomH = 50;
 
             var blockDim = 50;
-            var halfBlock = roomW/2;
+            var halfBlock = blockDim/2;
             var gridDim = 9;
             var halfGrid = Math.floor(gridDim/2);
             var meshMap = {};
@@ -82,6 +79,9 @@
             var newGridPos = [0,0];
 
             var nextBlocks = [];
+            var nextClosest = [];
+
+            var debug = true; 
 
             var paramBox = document.getElementById("parameters");
             var ids = document.getElementById("ids");
