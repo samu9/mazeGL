@@ -53,7 +53,6 @@ function genBlock(pos,wallsFlag){
     wallMaterial.dispose();
     floorMaterial.dispose();
 
-    console.log("block generated at x:" + pos[0] + ", z: " + pos[1]);
     return true; 
 }
 
@@ -78,14 +77,16 @@ function remBlock(bX, bZ){
 }
 
 function labyrinth(){
-    if(nextBlocks.length == 0)
+    if(closestBlocks.length == 0)
         return;
 
-    var temp = nextBlocks.shift();
+    var temp = closestBlocks.shift();
     var blockPos = temp.slice(0,2);
 
+    //console.log("extracted: " + blockPos);
+
     if(!checkGrid(blockPos)){ //non sono riuscito a creare il blocco (perchè è fuori dalla mia griglia), lo rimetto in pila
-        nextBlocks.unshift(temp);
+        nextBlocks.push(temp);
         return;
     }
 
@@ -108,8 +109,8 @@ function labyrinth(){
     //determino e gestisco i muri liberi del nuovo blocco
     for(var i = 0; i < 4; i++){
         if(i != entrance){ //lascio libero l'ingresso
-            walls[i] = 0;//Math.floor(Math.random()*2); //scelgo casualmente se il lato è libero o no
-            //if(i == front || i == left) walls[i] = 1; //per debug
+            walls[i] = Math.floor(Math.random()*2); //scelgo casualmente se il lato è libero o no
+            //if(i == front) walls[i] = 1; //per debug
             if(walls[i] == 0){ //lato libero
                 deadEnd = false; //so che senza contare da dove arrivo, c'è almeno un'altra parete libera
                 
@@ -121,7 +122,6 @@ function labyrinth(){
             
         }
     }
-    console.log(walls);
 
     genBlock(blockPos,walls); //genero il blocco
 
@@ -130,9 +130,8 @@ function labyrinth(){
     var straight;
     var straightLength;
     for(var i = 0; i < freeWalls.length; i++){
-        straightLength = Math.floor(Math.random()*halfGrid);
-        console.log("straight: " + straightLength);
         //genero un blocco a dritto
+        straightLength = Math.floor(Math.random()*halfGrid);
         newBlockPos = blockPos;
         newDir = freeWallToDirection(freeWalls[i]);
         straight = (newDir[0] == 0)? [1,0,1,0] : [0,1,0,1];
@@ -149,14 +148,69 @@ function labyrinth(){
             }
         }
     
-        if(checkMap(mazeMap,newBlockPos)){
-            nextBlocks.push([newBlockPos[0],newBlockPos[1],newDir[0],newDir[1]]);
-            console.log("pushed: " + [newBlockPos[0],newBlockPos[1],newDir[0],newDir[1]]);
-            //labyrinth();
-        }
+        if(checkMap(mazeMap,newBlockPos))
+            nextBlocks.push([newBlockPos[0],newBlockPos[1],newDir[0],newDir[1]]);  
     }
 }
 
+function getClosest(blocks){
+    var pos = blocks[0].slice(0,2);
+    var nearest = pos;
+    var nearestIndex = 0;
+    var dist = pointDistance(newGridPos,pos);
+    var min = dist;
+
+    for(var i = 1; i < blocks.length; i++){
+        pos = nextBlocks[i].slice(0,2);
+        dist = pointDistance(newGridPos,pos);
+        if(dist < min){
+            min = dist;
+            nearest = pos;
+            nearestIndex = i;
+        }
+    }
+    return nearestIndex;
+}
+
+
+function reorderBlocks(){
+    if(nextBlocks.length == 0)
+        return;
+
+    //console.log("nextBlocks: " + nextBlocks);
+    
+    while(closestBlocks.length > 0)
+        nextBlocks.push(closestBlocks.pop())
+    
+    var pos, min, dist, nearest, nearestIndex,element;
+    var j = 0;
+
+    while(j < 3 && nextBlocks.length > 0){
+        pos = nextBlocks[0].slice(0,2);
+        min = pointDistance(newGridPos,pos);
+        nearest = pos;
+        nearestIndex = 0;
+        
+        for(var i = 1; i < nextBlocks.length; i++){
+            pos = nextBlocks[i].slice(0,2);
+            dist = pointDistance(newGridPos,pos);
+            if(dist < min){
+                min = dist;
+                nearest = pos;
+                nearestIndex = i;
+            }
+        }
+        
+        if(!checkGrid(nearest)) //se il più vicino trovato è fuori dalla griglia lo lascio in nextBlocks
+            return;
+        
+        closestBlocks.push(nextBlocks[nearestIndex]); //prendo l'indice del blocco più vicino e lo metto in closestBlocks
+        console.log("block: " + nearest + ", distance: " + pointDistance(nearest,newGridPos))
+        nextBlocks.splice(nearestIndex,1);
+        
+        j++;  
+    }
+}
 
 function clearGrid(pos,dir){
     var moveDir = (dir[0] == 0)? 1 : 0;

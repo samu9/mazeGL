@@ -54,7 +54,7 @@ function init(){
     for(var i = -halfGrid+1; i < 0; i++)
         genBlock([0,i],[1,0,1,0]);
         //genBlock(0,i,0);
-    nextBlocks.push([0,-(halfGrid),0,-1]);
+    closestBlocks.push([0,-(halfGrid),0,-1]);
 
 
 

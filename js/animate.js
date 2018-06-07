@@ -35,21 +35,32 @@ function animate() {
     position = [(controls.getObject().position.x - halfBlock)/blockDim,(controls.getObject().position.z - halfBlock)/blockDim];
     newGridPos = [Math.floor(position[0]) + 1, Math.floor(position[1]) + 1];
     //console.log(newGridPos);
-    reorderBlocks();
+    
     
     var direction;
     if((gridPos[0] != newGridPos[0]) || (gridPos[1] != newGridPos[1])){
-        direction = [newGridPos[0] - gridPos[0], newGridPos[1] - gridPos[1]];  
-        labyrinth();
+        direction = [newGridPos[0] - gridPos[0], newGridPos[1] - gridPos[1]];
+        
+        reorderBlocks();
+
+        while(closestBlocks.length > 0){ 
+            labyrinth();
+            reorderBlocks();
+        }
+            
         //clearGrid(newGridPos,direction); 
         
         gridPos[0] = newGridPos[0];
         gridPos[1] = newGridPos[1];
 
         //stampo posizione e lista dei blocchi
-        var temp = "";
+        var temp = "closestBlocks:<br>";
+        for(var i = 0; i < closestBlocks.length; i++)
+            temp += closestBlocks[i] + "<br>";
+
+        temp += "nextBlocks:<br>";
         for(var i = 0; i < nextBlocks.length; i++)
-            temp += "[" + nextBlocks[i][0] + "," + nextBlocks[i][1] + "," + nextBlocks[i][2] + "," + nextBlocks[i][3] + "]<br>"; 
+            temp += nextBlocks[i] + "<br>"; 
         paramBox.innerHTML = "gridX: " + newGridPos[0] + "<br>" + "gridZ: " + newGridPos[1] + "<br>" + temp;
     }
 
