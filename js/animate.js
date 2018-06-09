@@ -41,14 +41,18 @@ function animate() {
     if((gridPos[0] != newGridPos[0]) || (gridPos[1] != newGridPos[1])){
         direction = [newGridPos[0] - gridPos[0], newGridPos[1] - gridPos[1]];
         
-        reorderBlocks();
+        //console.clear();
+
+        buildGrid(newGridPos,direction); //ricostruisco la mappa già generata che è in griglia
+
+        reorderBlocks(); //riordino i blocchi da cui generare in base alla distanza
 
         while(closestBlocks.length > 0){ 
-            labyrinth();
-            reorderBlocks();
+            labyrinth(); //genero il labirinto
+            reorderBlocks(); //riordino
         }
             
-        //clearGrid(newGridPos,direction); 
+        clearGrid(newGridPos,direction); //rimuovo i blocchi fuori griglia
         
         gridPos[0] = newGridPos[0];
         gridPos[1] = newGridPos[1];

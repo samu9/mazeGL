@@ -5,11 +5,7 @@ function sumArrays(a,b){
 
 //se il punto nella mappa è libero ritorna true
 function checkMap(map,pos){
-    if(pos[0] + "-" + pos[1] in map){
-        console.log("Block already exists in: [" + pos[0] + "," + pos[1] + "]");
-        return false;
-    }
-    return true;
+    return !(pos[0] + "-" + pos[1] in map);
 }
 
 //da un id del lato ottengo la direzione verso il lato libero

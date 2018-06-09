@@ -56,13 +56,12 @@ function genBlock(pos,wallsFlag){
     return true; 
 }
 
-function remBlock(bX, bZ){
+function remBlock(pos){
     //se il blocco è già vuoto
-    if(checkMap(meshMap,[bX,bZ]))
+    if(checkMap(meshMap,[pos[0],pos[1]]))
         return false;
 
-    console.log("block deleted at x:" + bX + ", z: " + bZ);
-    var remIds = meshMap[bX + "-" + bZ].split("-");
+    var remIds = meshMap[pos[0] + "-" + pos[1]].split("-");
     var object;
     for(var i = 0; i < remIds.length; i++){
         object = scene.getObjectById(parseInt(remIds[i]));
@@ -71,7 +70,7 @@ function remBlock(bX, bZ){
         scene.remove(object);
         delete object;
     }
-    delete meshMap[bX + "-" + bZ];
+    delete meshMap[pos[0] + "-" + pos[1]];
     
     return true;
 }
@@ -110,7 +109,7 @@ function labyrinth(){
     for(var i = 0; i < 4; i++){
         if(i != entrance){ //lascio libero l'ingresso
             walls[i] = Math.floor(Math.random()*2); //scelgo casualmente se il lato è libero o no
-            //if(i == front) walls[i] = 1; //per debug
+            //if(i != front) walls[i] = 1; //per debug
             if(walls[i] == 0){ //lato libero
                 deadEnd = false; //so che senza contare da dove arrivo, c'è almeno un'altra parete libera
                 
@@ -215,17 +214,43 @@ function reorderBlocks(){
 function clearGrid(pos,dir){
     var moveDir = (dir[0] == 0)? 1 : 0;
     var sideDir = (dir[0] == 0)? 0 : 1;
-    var start = pos[sideDir] - halfGrid;
-    var end = pos[sideDir] + halfGrid;
 
-    var axis = pos[moveDir] - dir[moveDir]*halfGrid - dir[moveDir];
+    //var moveSign = (moveDir == 0)? dir[moveDir] : dir[moveDir];
 
-    for(var j = start; j <= end; j++){
-        if(moveDir == 1){
-            remBlock(j,axis);
-
+    //var backStep = pos[moveDir] - dir[moveDir]*halfGrid - dir[moveDir];
+    var backStep = pos[moveDir] - dir[moveDir];
+    var remPos = [0,0];
+    //remPos[moveDir] = backStep;
+    
+    for(var i = 0; i <= halfGrid * 2; i++){
+        for(var j = -halfGrid; j <= halfGrid; j++){
+            remPos[sideDir] = (pos[sideDir] + j);
+            remPos[moveDir] = backStep + (Math.abs(j) - halfGrid - i) * dir[moveDir];
+            //console.log(remPos);
+            
+            if(!checkMap(meshMap,remPos)) remBlock(remPos);       
         }
-        else
-            remBlock(axis,j);   
+    }
+}
+
+
+function buildGrid(pos,dir){
+    var moveDir = (dir[0] == 0)? 1 : 0;
+    var sideDir = (dir[0] == 0)? 0 : 1;
+
+    var newBlock;
+    var buildPos = [0,0];    
+    for(var i = 0; i <= halfGrid; i++){
+        for(var j = -halfGrid; j <= halfGrid; j++){
+            buildPos[sideDir] = (pos[sideDir] + j);
+            buildPos[moveDir] = pos[moveDir] + (halfGrid - Math.abs(j) + i) * dir[moveDir];
+            //console.log(buildPos);
+            if(!checkMap(mazeMap,buildPos)){
+                
+                newBlock = mazeMap[buildPos[0] + '-' + buildPos[1]];
+                genBlock(buildPos,newBlock);
+                //console.log("Built " + buildPos);
+            }        
+        }
     }
 }
