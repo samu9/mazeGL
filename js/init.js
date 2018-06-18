@@ -8,6 +8,8 @@ function init(){
     renderer.setSize( WIDTH, HEIGHT ); 
     document.body.appendChild( renderer.domElement );
 
+
+    /* CAMERA */
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 ); 
     camera.position.set( 0, 0, 0 );
     camera.lookAt(0,40,0);
@@ -21,47 +23,11 @@ function init(){
         camera.updateProjectionMatrix();
     });
 
-
-    //geometry
-    plane = new THREE.PlaneBufferGeometry(blockDim,blockDim,8,8);
-    //textures
-    wallTexture = new THREE.TextureLoader().load( "textures/stonewall.jpeg" );
-    wallTexture.wrapS = THREE.RepeatWrapping;
-    wallTexture.wrapT = THREE.RepeatWrapping;
-    wallTexture.repeat.set( 4, 4 );
-    if(debug)
-        wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, side: THREE.DoubleSide, transparent: true, opacity: 0.4}); //texture trasparente per debug
-    else
-        wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, side: THREE.DoubleSide});
-
-    floorTexture = new THREE.TextureLoader().load( "textures/stonefloor.png" );
-    floorTexture.wrapS = THREE.RepeatWrapping;
-    floorTexture.wrapT = THREE.RepeatWrapping;
-    floorTexture.repeat.set( 16, 16 );
-    floorMaterial = new THREE.MeshLambertMaterial({map: floorTexture, side: THREE.DoubleSide});
-    
-/*
-    var cube = new THREE.CubeGeometry(10,10,10);
-    texture = new THREE.TextureLoader().load( "textures/crate.jpg" );
-    material = new THREE.MeshPhongMaterial({map: texture});
-    box = new THREE.Mesh( cube, material );
-    
-    //ruoto e traslo
-    box.position.set(-blockDim/2+box.geometry.parameters.width/2,box.geometry.parameters.height/2,0);
-  */
-
-    genBlock([0,0],[1,0,1,1]);
-    for(var i = -halfGrid+1; i < 0; i++)
-        genBlock([0,i],[1,0,1,0]);
-        //genBlock(0,i,0);
-    closestBlocks.push([0,-(halfGrid),0,-1]);
-
-
-
     controls = new THREE.PointerLockControls(camera);
     scene.add(controls.getObject());
-    if(!debug)
-        scene.fog = new THREE.Fog(0x000000,60,150);
+    controls.getObject().position.y = blockDim * 0.65;
+
+    /* KEYS */
     var onKeyDown = function ( event ) {
         switch ( event.keyCode ) {
             case 38: // up
@@ -104,9 +70,87 @@ function init(){
     document.addEventListener( 'keydown', onKeyDown, false );
     document.addEventListener( 'keyup', onKeyUp, false );
 
-    controls.getObject().position.y = 30;
+    /* FOG */
+    if(!debug)
+        scene.fog = new THREE.Fog(0x000000,60,150);
 
 
-    var light = new THREE.AmbientLight( 0xffffff ); // soft white light
+    //geometry
+    plane = new THREE.PlaneGeometry(blockDim,blockDim,1,1);
+    //textures
+    wallTexture = new THREE.TextureLoader().load( "textures/stonewall.jpeg" );
+    wallTexture.wrapS = THREE.RepeatWrapping;
+    wallTexture.wrapT = THREE.RepeatWrapping;
+    wallTexture.repeat.set( 2, 2 );
+    
+    if(debug)
+        wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, transparent: true, opacity: 0.4}); //texture trasparente per debug
+    else
+        wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, side: THREE.DoubleSide});
+
+    //PROVA SHADER MATERIAL
+    
+    var customUniforms = THREE.UniformsUtils.merge( [
+
+        THREE.UniformsLib[ "ambient" ],
+        THREE.UniformsLib[ "lights" ],
+        {
+          cameraX: {value: 0.0},
+          cameraZ: {value: 0.0},
+          effect: {value: 0.0},
+          tile: {value: new THREE.Vector2(2,2)},
+          textureSampler: {type: 't', value: null},
+          lightIntensity: {type: 'f', value: 1.0}
+        }
+    
+    ] );
+
+    /*
+    wallMaterial = new THREE.ShaderMaterial({
+            uniforms: customUniforms,
+            vertexShader: document.getElementById('vertexShader').textContent,
+            fragmentShader: document.getElementById('fragmentShader').textContent,
+            lights: true,
+            transparent: true
+    });
+    wallMaterial.uniforms.textureSampler.value = wallTexture;
+    wallMaterial.needsUpdate = true;
+*/
+
+
+    /* FLOOR */
+    floorTexture = new THREE.TextureLoader().load( "textures/stonefloor.jpg" );
+    floorTexture.wrapS = THREE.RepeatWrapping;
+    floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.repeat.set( 2, 2 );
+    floorMaterial = new THREE.MeshLambertMaterial({map: floorTexture, side: THREE.DoubleSide});
+    
+/*
+    var cube = new THREE.CubeGeometry(10,10,10);
+    texture = new THREE.TextureLoader().load( "textures/crate.jpg" );
+    material = new THREE.MeshPhongMaterial({map: texture});
+    box = new THREE.Mesh( cube, material );
+    
+    //ruoto e traslo
+    box.position.set(-blockDim/2+box.geometry.parameters.width/2,box.geometry.parameters.height/2,0);
+  */
+
+    genBlock([0,0],[1,0,1,1]);
+    
+    for(var i = -halfGrid+1; i < 0; i++)
+        genBlock([0,i],[1,0,1,0]);
+
+    closestBlocks.push([0,-(halfGrid),0,-1]);
+
+
+    /* LIGHTS */
+    var ambLight = new THREE.AmbientLight( 0xffffff ); // soft white light
+    var light = new THREE.PointLight( 0xffe66b, 1, 2 );
+    light.position.set( 0, halfBlock, -75 );
+    
     scene.add( light );
+    scene.add( ambLight );
+
+    //console.log(THREE.UniformsLib['lights']);
+    
 }

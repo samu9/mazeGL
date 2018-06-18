@@ -16,6 +16,8 @@ function moveBox(){
 function animate() {
     requestAnimationFrame( animate ); 
     stats.begin();
+    var timestampNow = new Date().getTime()/1000.0;
+    var lightEffect = 1;//0.25 * Math.cos(timestampNow * Math.PI);
 
     var time = performance.now();
     var delta = ( time - prevTime ) / 1000;
@@ -36,9 +38,14 @@ function animate() {
     newGridPos = [Math.floor(position[0]) + 1, Math.floor(position[1]) + 1];
     //console.log(newGridPos);
     
-    
+    //wallMaterial.uniforms.cameraX.value = controls.getObject().position.x * 0.1;
+    //wallMaterial.uniforms.cameraZ.value = controls.getObject().position.z * 0.1;
+
+    //wallMaterial.uniforms.effect.value = lightEffect;
+
     var direction;
     if((gridPos[0] != newGridPos[0]) || (gridPos[1] != newGridPos[1])){
+        
         direction = [newGridPos[0] - gridPos[0], newGridPos[1] - gridPos[1]];
         
         //console.clear();
