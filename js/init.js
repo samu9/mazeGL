@@ -27,7 +27,34 @@ function init(){
     scene.add(controls.getObject());
     controls.getObject().position.y = blockDim * 0.65;
 
-    /* KEYS */
+    /* CONTROLS */
+    var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
+    if ( havePointerLock ) {
+        var element = document.body;
+        var pointerlockchange = function ( event ) {
+            if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
+                controlsEnabled = true;
+                controls.enabled = true;
+            } else {
+                controls.enabled = false;
+            }
+        };
+        var pointerlockerror = function ( event ) {
+        };
+        // Hook pointer lock state change events
+        document.addEventListener( 'pointerlockchange', pointerlockchange, false );
+        document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
+        document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
+        document.addEventListener( 'pointerlockerror', pointerlockerror, false );
+        document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
+        document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
+        document.addEventListener( 'click', function ( event ) {
+            // Ask the browser to lock the pointer
+            element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
+            element.requestPointerLock();  
+        }, false );
+    } 
+
     var onKeyDown = function ( event ) {
         switch ( event.keyCode ) {
             case 38: // up
@@ -36,7 +63,8 @@ function init(){
                 break;
             case 37: // left
             case 65: // a
-                moveLeft = true; break;
+                moveLeft = true; 
+                break;
             case 40: // down
             case 83: // s
                 moveBackward = true;
@@ -75,6 +103,7 @@ function init(){
         scene.fog = new THREE.Fog(0x000000,60,150);
 
 
+    /* MESHES */
     //geometry
     plane = new THREE.PlaneGeometry(blockDim,blockDim,1,1);
     //textures
@@ -83,20 +112,17 @@ function init(){
     wallTexture.wrapT = THREE.RepeatWrapping;
     wallTexture.repeat.set( 2, 2 );
     
-    if(debug)
+    if(!debug)
         wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, transparent: true, opacity: 0.4}); //texture trasparente per debug
     else
         wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, side: THREE.DoubleSide});
 
-    //PROVA SHADER MATERIAL
-    
-    var customUniforms = THREE.UniformsUtils.merge( [
 
-        THREE.UniformsLib[ "ambient" ],
+    //PROVA SHADER MATERIAL
+    var customUniforms = THREE.UniformsUtils.merge( [
         THREE.UniformsLib[ "lights" ],
         {
-          cameraX: {value: 0.0},
-          cameraZ: {value: 0.0},
+          blockDim: {value: blockDim},
           effect: {value: 0.0},
           tile: {value: new THREE.Vector2(2,2)},
           textureSampler: {type: 't', value: null},
@@ -105,7 +131,7 @@ function init(){
     
     ] );
 
-    /*
+    
     wallMaterial = new THREE.ShaderMaterial({
             uniforms: customUniforms,
             vertexShader: document.getElementById('vertexShader').textContent,
@@ -115,7 +141,7 @@ function init(){
     });
     wallMaterial.uniforms.textureSampler.value = wallTexture;
     wallMaterial.needsUpdate = true;
-*/
+
 
 
     /* FLOOR */
@@ -135,22 +161,17 @@ function init(){
     box.position.set(-blockDim/2+box.geometry.parameters.width/2,box.geometry.parameters.height/2,0);
   */
 
+    /* MAZE INITIALIZATION */
     genBlock([0,0],[1,0,1,1]);
     
-    for(var i = -halfGrid+1; i < 0; i++)
+    for(var i = -halfGrid+1; i < 0; i++){
         genBlock([0,i],[1,0,1,0]);
-
+        genLight([0,i],[0,-1]);
+    }
     closestBlocks.push([0,-(halfGrid),0,-1]);
 
 
-    /* LIGHTS */
-    var ambLight = new THREE.AmbientLight( 0xffffff ); // soft white light
-    var light = new THREE.PointLight( 0xffe66b, 1, 2 );
-    light.position.set( 0, halfBlock, -75 );
-    
-    scene.add( light );
-    scene.add( ambLight );
 
-    //console.log(THREE.UniformsLib['lights']);
-    
+    /* LIGHTS */
+    var ambLight = new THREE.AmbientLight( 0xffffff );    
 }

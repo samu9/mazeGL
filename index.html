@@ -21,6 +21,8 @@
                 vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
                 vecNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;
                 gl_Position = projectionMatrix * modelViewPosition;
+
+                
             }
         </script>
 
@@ -32,8 +34,8 @@
             varying vec3 vecPos;
             varying vec3 vecNormal;
 
-            uniform float cameraX;
-            uniform float cameraZ;
+            uniform float blockDim;
+
 
             uniform float effect;
             uniform sampler2D textureSampler;
@@ -46,25 +48,27 @@
                 vec3 position; 
                 float distance; 
             };
-
             uniform PointLight pointLights[NUM_POINT_LIGHTS];
 
             void main() {
                 ///vec2 xy = gl_TexCoord[0].xy;
                 //vec2 phase = fract(xy / Tile);
                 
-                addedLights = vec4(0,0,0,1);
+                addedLights = vec4(1.0,1.0,1.0,1);
                 
                 float dist;
-        
-                
+                float attenuation = 0.0;
+                vec3 lightVec;
+                /*
                 for(int l = 0; l < NUM_POINT_LIGHTS; l++) {
-                    dist = clamp(distance(vecPos,pointLights[l].position),0.0,1.0);
-                    vec3 lightDirection = normalize(vecPos - pointLights[l].position);
-                    addedLights.rgb += clamp(dot(-lightDirection,vecNormal),0.0, 1.0) * pointLights[l].color;
+                    lightVec = vecPos - pointLights[l].position;
+                    attenuation = 10.0 / (0.5 * length(lightVec) + 0.00 * pow(length(lightVec),2.0));
+                    vec3 lightDirection = normalize(lightVec);
+                    addedLights.rgb += clamp(dot(-lightDirection,vecNormal) * pointLights[l].color * attenuation,0.0,1.0);
                 }
-                
+                */
                 gl_FragColor = texture2D(textureSampler,vUv) * addedLights;
+                //gl_FragColor = addedLights;
             }
         </script>
 
@@ -74,58 +78,24 @@
         <script src="js/PointerLockControls.js"></script>
         <script src="js/stats.min.js"></script>
 
+        <script src="js/parameters.js"></script>
         <script src="js/utilities.js"></script>
         <script src="js/functions.js"></script>
         <script src="js/init.js"></script>
         <script src="js/animate.js"></script>
         <script>
-
-
-
-
-            var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
-            if ( havePointerLock ) {
-                var element = document.body;
-                var pointerlockchange = function ( event ) {
-                    if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
-                        controlsEnabled = true;
-                        controls.enabled = true;
-                    } else {
-                        controls.enabled = false;
-                    }
-                };
-                var pointerlockerror = function ( event ) {
-                };
-                // Hook pointer lock state change events
-                document.addEventListener( 'pointerlockchange', pointerlockchange, false );
-                document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
-                document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
-                document.addEventListener( 'pointerlockerror', pointerlockerror, false );
-                document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
-                document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
-                document.addEventListener( 'click', function ( event ) {
-                    // Ask the browser to lock the pointer
-                    element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
-                    element.requestPointerLock();  
-                }, false );
-            } 
-            
-
             var scene, camera, renderer;
             var controls;
             var texture, material;
             var wallTexture, floorTexture, wallMaterial, floorMaterial;
             var plane;
-
-            var box,light;
-
-            var blockDim = 50;
-            var halfBlock = blockDim/2;
-            var gridDim = 9;
-            var halfGrid = Math.floor(gridDim/2);
+            
+            /* mappe per tenere traccia delle mesh, del labirinto generato e delle luci */
             var meshMap = {};
             var mazeMap = {};
+            var lightMap = {};
 
+            /* variabili per il movimento */
             var controlsEnabled = false;
             var moveForward = false;
             var moveBackward = false;
@@ -133,21 +103,27 @@
             var moveRight = false;
             var prevTime = performance.now();
             var velocity = new THREE.Vector3();
+            var wallsId;
             
-            var position = [0,0];
-            var gridPos = [0,0];
+            /* posizione sulla griglia prima e dopo aver raggiunto un nuovo blocco */
+            var position = [0,0]; //coordinate della telecamera
+            var gridPos = [0,0]; //coordinate normalizzate alla dimensione del blocco
             var newGridPos = [0,0];
+            
+            var wallsId = [];
 
+            /* lista dei blocchi da generare quando si è in prossimità di essi */
             var nextBlocks = [];
             var closestBlocks = [];
-
-            var debug = false; 
+            
+            
 
             var paramBox = document.getElementById("parameters");
 
             var stats = new Stats();
             stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
             document.body.appendChild( stats.dom );
+
 
             init();
 

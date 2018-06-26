@@ -10,30 +10,38 @@ function genBlock(pos,wallsFlag){
     walls[0].position.set(-blockDim/2 + (pos[0]*blockDim),blockDim/2,(pos[1]*blockDim));
     walls[0].rotation.set(0,Math.PI/2,0);
     walls[0].matrixAutoUpdate  = true;
+    //walls[0].castShadow = true;
+    //walls[0].receiveShadow = true;
 
     //front (looking in the direction of negative z)
     walls[1] = new THREE.Mesh(plane,wallMaterial);
     walls[1].position.set((pos[0]*blockDim),blockDim/2,-blockDim/2 + (pos[1]*blockDim));
     walls[1].rotation.set(0,0,0);
     walls[1].matrixAutoUpdate  = true;
+    //walls[1].castShadow = true;
+    //walls[1].receiveShadow = true;
 
     //right (looking in the direction of negative z)
     walls[2] = new THREE.Mesh(plane,wallMaterial);
     walls[2].position.set(blockDim/2 + (pos[0]*blockDim),blockDim/2,(pos[1]*blockDim));
     walls[2].rotation.set(0,-Math.PI/2,0);
     walls[2].matrixAutoUpdate  = true;
+    //walls[2].castShadow = true;
+    //walls[2].receiveShadow = true;
 
     //back (looking in the direction of negative z)
     walls[3] = new THREE.Mesh(plane,wallMaterial);
     walls[3].position.set((pos[0]*blockDim),blockDim/2,+blockDim/2 + (pos[1]*blockDim));
     walls[3].rotation.set(0,Math.PI,0);
     walls[3].matrixAutoUpdate  = true;
+    //walls[3].castShadow = true;
+    //walls[3].receiveShadow = true;
 
     //floor and ceiling
-    var floor = new THREE.Mesh(plane, floorMaterial);
+    var floor = new THREE.Mesh(plane, wallMaterial);
     var ceiling = new THREE.Mesh(plane, wallMaterial);
     floor.position.set((pos[0]*blockDim),0,(pos[1]*blockDim));
-    floor.rotation.set(Math.PI/2,0,0);
+    floor.rotation.set(Math.PI/2,Math.PI,0);
     ceiling.position.set((pos[0]*blockDim),blockDim,(pos[1]*blockDim));   
     ceiling.rotation.set(Math.PI/2,0,0);
 
@@ -79,6 +87,36 @@ function remBlock(pos){
     return true;
 }
 
+function genLight(pos,dir){
+    var posX = (dir[0] != 0)? pos[0]*blockDim : pos[0]*blockDim + halfBlock*0.85;
+    var posZ = (dir[1] != 0)? pos[1]*blockDim : pos[1]*blockDim + halfBlock*0.85;
+    var light = new THREE.PointLight(lightColor);
+    light.position.set( posX, blockDim * 0.7, posZ );
+    scene.add(light);
+    var helper = new THREE.PointLightHelper( light, 1 );
+    scene.add(helper);
+    delete light;
+    delete helper;
+    lightMap[pos[0] + "-" + pos[1]] = light.id + "-" + helper.id;
+}
+
+function remLight(pos){
+        //se il blocco è già vuoto
+        if(checkMap(lightMap,[pos[0],pos[1]]))
+        return false;
+
+    var remIds = lightMap[pos[0] + "-" + pos[1]].split("-");
+    var object;
+    for(var i = 0; i < remIds.length; i++){
+        object = scene.getObjectById(parseInt(remIds[i]));
+        scene.remove(object);
+        delete object;
+    }
+    delete lightMap[pos[0] + "-" + pos[1]];
+    
+    return true;
+}
+
 function labyrinth(){
     if(closestBlocks.length == 0)
         return;
@@ -117,7 +155,7 @@ function labyrinth(){
             if(checkMap(mazeMap,sumArrays(blockPos,wallDir))){
                 //se non ci sono altre vie libere faccio in modo che il labirinto continui
                 walls[i] = (nextBlocks.length == 0)? 0 : Math.floor(Math.random()*2); //scelgo casualmente se il lato è libero o no
-                //if(i == left || i == right) walls[i] = 1; //per debug
+                //if(i == front || i == right) walls[i] = 1; //per debug
                 if(walls[i] == 0){ //lato libero 
                     freeWalls.push(i); //mi salvo gli indici dei lati liberi
                     deadEnd = false; //so che senza contare da dove arrivo, c'è almeno un'altra parete libera
@@ -151,27 +189,17 @@ function labyrinth(){
             if(!checkMap(mazeMap,newBlockPos)) break;
             if(checkMap(mazeMap,sumArrays(newBlockPos,newDir))){
                 if(!genBlock(newBlockPos,straight)) break;
+                genLight(newBlockPos,newDir);
                 newBlockPos = sumArrays(newBlockPos,newDir);
             }
-            else{
+            else if(l == 0){
                 if(!genBlock(newBlockPos,endStraight)) break;
+                genLight(newBlockPos,newDir);
                 newBlockPos = sumArrays(newBlockPos,newDir);
+                break;
             }
             l++;
         } while(l <= straightLength);
-        /*
-        for(var l = 1; l <= straightLength; l++){
-            if(!checkMap(mazeMap,newBlockPos)) break;
-            if(checkMap(mazeMap,sumArrays(newBlockPos,newDir))){
-                if(!genBlock(newBlockPos,straight)) break;
-                newBlockPos = sumArrays(newBlockPos,newDir);
-            }
-            else{
-                if(!genBlock(newBlockPos,endStraight)) break;
-                newBlockPos = sumArrays(newBlockPos,newDir);
-            }
-        }
-        */
 
         if(checkMap(mazeMap,newBlockPos))
             nextBlocks.push([newBlockPos[0],newBlockPos[1],newDir[0],newDir[1]]);  
@@ -248,7 +276,10 @@ function clearGrid(pos,dir){
             remPos[sideDir] = (pos[sideDir] + j);
             remPos[moveDir] = backStep + (Math.abs(j) - halfGrid - i) * dir[moveDir];
             
-            if(!checkMap(meshMap,remPos)) remBlock(remPos);       
+            if(!checkMap(meshMap,remPos)){
+                remBlock(remPos); 
+                remLight(remPos);
+            }    
         }
     }
 }
@@ -264,13 +295,75 @@ function buildGrid(pos,dir){
         for(var j = -halfGrid; j <= halfGrid; j++){
             buildPos[sideDir] = (pos[sideDir] + j);
             buildPos[moveDir] = pos[moveDir] + (halfGrid - Math.abs(j) + i) * dir[moveDir];
-            //console.log(buildPos);
-            if(!checkMap(mazeMap,buildPos)){
-                
+
+            if(!checkMap(mazeMap,buildPos)){ 
                 newBlock = mazeMap[buildPos[0] + '-' + buildPos[1]];
                 genBlock(buildPos,newBlock);
-                //console.log("Built " + buildPos);
+                genLight(buildPos,dir);
             }        
         }
+    }
+}
+
+function checkCollision(){
+    var cameraDirection = controls.getDirection(new THREE.Vector3(0, 0, 0)).clone();
+    var rotationMatrix;
+
+    velocity.x = 0;
+    velocity.z = 0;
+
+    var rotation = 0;
+    var pressedKeys = 0;
+
+    if (moveForward) {
+        velocity.z -= camSpeed;
+        pressedKeys++;
+    }
+    if (moveBackward) {
+        rotation += 180;
+        velocity.z += camSpeed;
+        pressedKeys++;
+    }
+    if (moveLeft) {
+        rotation += 90;
+        velocity.x -= camSpeed;
+        pressedKeys++;
+    }
+    if (moveRight) {
+        rotation += -90;
+        velocity.x += camSpeed;
+        pressedKeys++;
+    }
+
+    if(!moveForward && !moveBackward && !moveLeft && !moveRight) return;
+
+    console.log(rotation / pressedKeys);
+
+    if (rotation != 0){
+        rotationMatrix = new THREE.Matrix4();
+        rotationMatrix.makeRotationY((rotation / pressedKeys) * Math.PI / 180);
+        cameraDirection.applyMatrix4(rotationMatrix);
+    }
+    if(!wallsId){
+        controls.getObject().translateX( -velocity.x*2);
+        controls.getObject().translateZ( -velocity.z*2);
+        return; 
+    }
+    if(wallsId.length == 0){
+        controls.getObject().translateX( velocity.x);
+        controls.getObject().translateZ( velocity.z);
+        return;
+    }
+
+    var walls = [];
+    for(var i = 0; i < wallsId.length; i++)
+        walls.push(scene.getObjectById(parseInt(wallsId[i])))
+
+    var rayCaster = new THREE.Raycaster(controls.getObject().position, cameraDirection);
+    var intersects = rayCaster.intersectObjects(walls, false);
+    if(intersects.length == 0 || intersects[0].distance > wallEdge){
+        controls.getObject().translateX( velocity.x);
+        controls.getObject().translateZ( velocity.z);
+        return;
     }
 }
