@@ -98,6 +98,7 @@ function init(){
     document.addEventListener( 'keydown', onKeyDown, false );
     document.addEventListener( 'keyup', onKeyUp, false );
 
+
     /* FOG */
     if(!debug)
         scene.fog = new THREE.Fog(0x000000,60,150);
@@ -161,7 +162,7 @@ function init(){
     box.position.set(-blockDim/2+box.geometry.parameters.width/2,box.geometry.parameters.height/2,0);
   */
 
-    /* MAZE INITIALIZATION */
+    /* INIZIALIZZO IL LABIRINTO */
     genBlock([0,0],[1,0,1,1]);
     
     for(var i = -halfGrid+1; i < 0; i++){
@@ -170,6 +171,8 @@ function init(){
     }
     closestBlocks.push([0,-(halfGrid),0,-1]);
 
+    //inizializzo gli id delle mesh del blocco in cui mi trovo
+    wallsId = meshMap["0-0"].split("-").slice(2);
 
 
     /* LIGHTS */

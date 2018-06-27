@@ -88,10 +88,15 @@ function remBlock(pos){
 }
 
 function genLight(pos,dir){
-    var posX = (dir[0] != 0)? pos[0]*blockDim : pos[0]*blockDim + halfBlock*0.85;
-    var posZ = (dir[1] != 0)? pos[1]*blockDim : pos[1]*blockDim + halfBlock*0.85;
+    if(!checkMap(lightMap,pos)) return;
+
+    var lightDistFromWall = 0.85;
+    var lightHeight = 0.7;
+
+    var posX = (dir[0] != 0)? pos[0]*blockDim : pos[0]*blockDim + halfBlock * lightDistFromWall;
+    var posZ = (dir[1] != 0)? pos[1]*blockDim : pos[1]*blockDim + halfBlock * lightDistFromWall;
     var light = new THREE.PointLight(lightColor);
-    light.position.set( posX, blockDim * 0.7, posZ );
+    light.position.set( posX, blockDim * lightHeight, posZ );
     scene.add(light);
     var helper = new THREE.PointLightHelper( light, 1 );
     scene.add(helper);
@@ -101,9 +106,8 @@ function genLight(pos,dir){
 }
 
 function remLight(pos){
-        //se il blocco è già vuoto
-        if(checkMap(lightMap,[pos[0],pos[1]]))
-        return false;
+    //se il blocco è già vuoto
+    if(checkMap(lightMap,[pos[0],pos[1]])) return false;
 
     var remIds = lightMap[pos[0] + "-" + pos[1]].split("-");
     var object;
@@ -155,7 +159,7 @@ function labyrinth(){
             if(checkMap(mazeMap,sumArrays(blockPos,wallDir))){
                 //se non ci sono altre vie libere faccio in modo che il labirinto continui
                 walls[i] = (nextBlocks.length == 0)? 0 : Math.floor(Math.random()*2); //scelgo casualmente se il lato è libero o no
-                //if(i == front || i == right) walls[i] = 1; //per debug
+                //if(i == left || i == right) walls[i] = 1; //per debug
                 if(walls[i] == 0){ //lato libero 
                     freeWalls.push(i); //mi salvo gli indici dei lati liberi
                     deadEnd = false; //so che senza contare da dove arrivo, c'è almeno un'altra parete libera
@@ -189,12 +193,12 @@ function labyrinth(){
             if(!checkMap(mazeMap,newBlockPos)) break;
             if(checkMap(mazeMap,sumArrays(newBlockPos,newDir))){
                 if(!genBlock(newBlockPos,straight)) break;
-                genLight(newBlockPos,newDir);
+                else genLight(newBlockPos,newDir);
                 newBlockPos = sumArrays(newBlockPos,newDir);
             }
             else if(l == 0){
                 if(!genBlock(newBlockPos,endStraight)) break;
-                genLight(newBlockPos,newDir);
+                else genLight(newBlockPos,newDir);
                 newBlockPos = sumArrays(newBlockPos,newDir);
                 break;
             }
@@ -330,14 +334,16 @@ function checkCollision(){
         pressedKeys++;
     }
     if (moveRight) {
-        rotation += -90;
+        // non so perchè ma avanti e destra con 270 o indietro e destra insieme con -90 non fuziona correttamente
+        if(moveForward) rotation += -90;
+        else if(moveBackward) rotation += 270;
+        else rotation += -90;
         velocity.x += camSpeed;
         pressedKeys++;
     }
 
     if(!moveForward && !moveBackward && !moveLeft && !moveRight) return;
 
-    console.log(rotation / pressedKeys);
 
     if (rotation != 0){
         rotationMatrix = new THREE.Matrix4();

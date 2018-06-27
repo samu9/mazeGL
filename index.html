@@ -54,19 +54,26 @@
                 ///vec2 xy = gl_TexCoord[0].xy;
                 //vec2 phase = fract(xy / Tile);
                 
-                addedLights = vec4(1.0,1.0,1.0,1);
+                addedLights = vec4(0.0,0.0,0.0,1);
                 
                 float dist;
+                float radius;
+                float a = 0.00;
+                float b = 1.0 / (blockDim * blockDim * 0.1);
                 float attenuation = 0.0;
                 vec3 lightVec;
-                /*
+                
+                radius = sqrt(1.0 / (b * blockDim));
+
                 for(int l = 0; l < NUM_POINT_LIGHTS; l++) {
                     lightVec = vecPos - pointLights[l].position;
-                    attenuation = 10.0 / (0.5 * length(lightVec) + 0.00 * pow(length(lightVec),2.0));
+                    //attenuation = 1.0 / (1.0 + a * length(lightVec) + b * length(lightVec)*length(lightVec));
+                    attenuation = clamp(1.0 - length(lightVec) * length(lightVec)/(blockDim * blockDim * 1.5),0.0,1.0);
+
                     vec3 lightDirection = normalize(lightVec);
                     addedLights.rgb += clamp(dot(-lightDirection,vecNormal) * pointLights[l].color * attenuation,0.0,1.0);
                 }
-                */
+                
                 gl_FragColor = texture2D(textureSampler,vUv) * addedLights;
                 //gl_FragColor = addedLights;
             }

@@ -37,15 +37,9 @@ function animate() {
             labyrinth(); //genero il labirinto
             reorderBlocks(); //riordino
         }   
-        //clearGrid(newGridPos,direction); //rimuovo i blocchi fuori griglia
+        clearGrid(newGridPos,direction); //rimuovo i blocchi fuori griglia
     
         
-        if(wallsId.length > 0){
-            var object = scene.getObjectById(parseInt(wallsId[0]));
-            console.log([object.position.x,object.position.z] );
-        }
-        else
-            console.log("no walls");
         
         /* AGGIORNO POSIZIONE */
         gridPos[0] = newGridPos[0];
