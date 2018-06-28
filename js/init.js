@@ -4,8 +4,12 @@ function init(){
     var WIDTH = window.innerWidth,
         HEIGHT = window.innerHeight;
 
+
+    /* RENDERER */
     renderer = new THREE.WebGLRenderer({antialias:true}); 
     renderer.setSize( WIDTH, HEIGHT ); 
+    //renderer.shadowMap.enabled = true;
+    //renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
     document.body.appendChild( renderer.domElement );
 
 
@@ -121,7 +125,8 @@ function init(){
 
     //PROVA SHADER MATERIAL
     var customUniforms = THREE.UniformsUtils.merge( [
-        THREE.UniformsLib[ "lights" ],
+        THREE.UniformsLib["lights"],
+        THREE.UniformsLib["shadowmap"],
         {
           blockDim: {value: blockDim},
           effect: {value: 0.0},

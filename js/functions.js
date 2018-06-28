@@ -10,40 +10,44 @@ function genBlock(pos,wallsFlag){
     walls[0].position.set(-blockDim/2 + (pos[0]*blockDim),blockDim/2,(pos[1]*blockDim));
     walls[0].rotation.set(0,Math.PI/2,0);
     walls[0].matrixAutoUpdate  = true;
-    //walls[0].castShadow = true;
-    //walls[0].receiveShadow = true;
+    walls[0].castShadow = true;
+    walls[0].receiveShadow = true;
 
     //front (looking in the direction of negative z)
     walls[1] = new THREE.Mesh(plane,wallMaterial);
     walls[1].position.set((pos[0]*blockDim),blockDim/2,-blockDim/2 + (pos[1]*blockDim));
     walls[1].rotation.set(0,0,0);
     walls[1].matrixAutoUpdate  = true;
-    //walls[1].castShadow = true;
-    //walls[1].receiveShadow = true;
+    walls[1].castShadow = true;
+    walls[1].receiveShadow = true;
 
     //right (looking in the direction of negative z)
     walls[2] = new THREE.Mesh(plane,wallMaterial);
     walls[2].position.set(blockDim/2 + (pos[0]*blockDim),blockDim/2,(pos[1]*blockDim));
     walls[2].rotation.set(0,-Math.PI/2,0);
     walls[2].matrixAutoUpdate  = true;
-    //walls[2].castShadow = true;
-    //walls[2].receiveShadow = true;
+    walls[2].castShadow = true;
+    walls[2].receiveShadow = true;
 
     //back (looking in the direction of negative z)
     walls[3] = new THREE.Mesh(plane,wallMaterial);
     walls[3].position.set((pos[0]*blockDim),blockDim/2,+blockDim/2 + (pos[1]*blockDim));
     walls[3].rotation.set(0,Math.PI,0);
     walls[3].matrixAutoUpdate  = true;
-    //walls[3].castShadow = true;
-    //walls[3].receiveShadow = true;
+    walls[3].castShadow = true;
+    walls[3].receiveShadow = true;
 
     //floor and ceiling
     var floor = new THREE.Mesh(plane, wallMaterial);
     var ceiling = new THREE.Mesh(plane, wallMaterial);
     floor.position.set((pos[0]*blockDim),0,(pos[1]*blockDim));
     floor.rotation.set(Math.PI/2,Math.PI,0);
+    floor.castShadow = true;
+    floor.receiveShadow = true;
     ceiling.position.set((pos[0]*blockDim),blockDim,(pos[1]*blockDim));   
     ceiling.rotation.set(Math.PI/2,0,0);
+    ceiling.castShadow = true;
+    ceiling.receiveShadow = true;
 
     scene.add(floor);
     scene.add(ceiling);
@@ -97,12 +101,47 @@ function genLight(pos,dir){
     var posZ = (dir[1] != 0)? pos[1]*blockDim : pos[1]*blockDim + halfBlock * lightDistFromWall;
     var light = new THREE.PointLight(lightColor);
     light.position.set( posX, blockDim * lightHeight, posZ );
+    light.castShadow = true;
+    //light.shadow.mapSize.width = 512;  // default
+    //light.shadow.mapSize.height = 512; // default
+    //light.shadow.camera.near = 0.5;       // default
+    //light.shadow.camera.far = 500      // default
     scene.add(light);
     var helper = new THREE.PointLightHelper( light, 1 );
-    scene.add(helper);
+    //scene.add(helper);
     delete light;
     delete helper;
     lightMap[pos[0] + "-" + pos[1]] = light.id + "-" + helper.id;
+
+    var loader = new THREE.OBJLoader();
+
+    // load a resource
+    loader.load(
+        // resource URL
+        'models/torch.OBJ',
+        // called when resource is loaded
+        function ( object ) {
+
+            scene.add( object );
+            object.scale.set(0.1,0.1,0.1);
+            object.position.set( posX, blockDim * 0.53, posZ );
+            lightMap[pos[0] + "-" + pos[1]] += "-" + object.id;
+        },
+        // called when loading is in progresses
+        function ( xhr ) {
+
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+        },
+        // called when loading has errors
+        function ( error ) {
+
+            console.log( 'An error happened' );
+
+        }
+
+        
+    );
 }
 
 function remLight(pos){
@@ -303,7 +342,10 @@ function buildGrid(pos,dir){
             if(!checkMap(mazeMap,buildPos)){ 
                 newBlock = mazeMap[buildPos[0] + '-' + buildPos[1]];
                 genBlock(buildPos,newBlock);
-                genLight(buildPos,dir);
+                if(arraysEqual(newBlock,[0,1,0,1]))
+                    genLight(buildPos,freeWallToDirection(0));
+                else if(arraysEqual(newBlock,[1,0,1,0]))
+                    genLight(buildPos,freeWallToDirection(1));
             }        
         }
     }

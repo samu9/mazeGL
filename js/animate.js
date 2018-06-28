@@ -35,11 +35,10 @@ function animate() {
         reorderBlocks(); //riordino i blocchi da cui generare in base alla distanza
         while(closestBlocks.length > 0){ 
             labyrinth(); //genero il labirinto
-            reorderBlocks(); //riordino
+            reorderBlocks();
         }   
         clearGrid(newGridPos,direction); //rimuovo i blocchi fuori griglia
     
-        
         
         /* AGGIORNO POSIZIONE */
         gridPos[0] = newGridPos[0];
@@ -47,7 +46,9 @@ function animate() {
         
         wallsId = (newGridPos[0] + "-" + newGridPos[1] in meshMap)? meshMap[newGridPos[0] + "-" + newGridPos[1]].split("-").slice(2) : false;
 
+
         /* stampo posizione e lista dei blocchi */
+        /*
         var temp = "closestBlocks:<br>";
         for(var i = 0; i < closestBlocks.length; i++)
             temp += closestBlocks[i] + "<br>";
@@ -55,7 +56,8 @@ function animate() {
         temp += "nextBlocks:<br>";
         for(var i = 0; i < nextBlocks.length; i++)
             temp += nextBlocks[i] + "<br>"; 
-        paramBox.innerHTML = "gridX: " + newGridPos[0] + "<br>" + "gridZ: " + newGridPos[1] + "<br>" + temp;
+            */
+        paramBox.innerHTML = "gridX: " + newGridPos[0] + "<br>" + "gridZ: " + newGridPos[1];// + "<br>" + temp;
     }
     checkCollision();
 

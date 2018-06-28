@@ -39,3 +39,10 @@ function checkGrid(pos){
 function pointDistance(x,y){
     return Math.sqrt(Math.pow((x[0] - y[0]),2) + Math.pow((x[1] - y[1]),2));
 }
+
+function arraysEqual(a1,a2){
+    if(a1.length != a2.length) return false;
+    for(var i = 0; i < a1.length; i++)
+        if(a1[i] != a2[i]) return false;
+    return true;
+}
