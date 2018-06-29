@@ -46,3 +46,14 @@ function arraysEqual(a1,a2){
         if(a1[i] != a2[i]) return false;
     return true;
 }
+
+function httpRequest(address) {
+    var request = new XMLHttpRequest();
+    request.open('GET', address, false);  // `false` makes the request synchronous
+    request.send(null);
+    
+    if (request.status === 200) {
+      return request.responseText;
+    }
+    return false;
+ }

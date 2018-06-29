@@ -35,7 +35,9 @@
             varying vec3 vecNormal;
 
             uniform float blockDim;
-
+            uniform vec3 fogColor;
+            uniform float fogNear;
+            uniform float fogFar;
 
             uniform float effect;
             uniform sampler2D textureSampler;
@@ -77,6 +79,16 @@
                 
                 gl_FragColor = texture2D(textureSampler,vUv) * addedLights;
                 //gl_FragColor = addedLights;
+
+                #ifdef USE_FOG
+                #ifdef USE_LOGDEPTHBUF_EXT
+                    float depth = gl_FragDepthEXT / gl_FragCoord.w;
+                #else
+                    float depth = gl_FragCoord.z / gl_FragCoord.w;
+                #endif
+                float fogFactor = smoothstep( fogNear, fogFar, depth );
+                gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
+                #endif
             }
         </script>
 
@@ -98,6 +110,11 @@
             var texture, material;
             var wallTexture, floorTexture, wallMaterial, floorMaterial;
             var plane;
+
+            
+            var OBJfile = httpRequest("models/torch.OBJ");
+            var loader = new THREE.OBJLoader();
+            var model3d = loader.parse(OBJfile);
             
             /* mappe per tenere traccia delle mesh, del labirinto generato e delle luci */
             var meshMap = {};

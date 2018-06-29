@@ -104,8 +104,7 @@ function init(){
 
 
     /* FOG */
-    if(!debug)
-        scene.fog = new THREE.Fog(0x000000,60,150);
+    scene.fog = new THREE.Fog(0x000000,80,150);
 
 
     /* MESHES */
@@ -128,6 +127,13 @@ function init(){
         THREE.UniformsLib["lights"],
         THREE.UniformsLib["shadowmap"],
         {
+            topColor:    { type: "c", value: new THREE.Color( 0x0077ff ) },
+            bottomColor: { type: "c", value: new THREE.Color( 0xffffff ) },
+            offset:      { type: "f", value: 33 },
+            exponent:    { type: "f", value: 0.6 },
+            fogColor:    { type: "c", value: scene.fog.color },
+            fogNear:     { type: "f", value: scene.fog.near },
+            fogFar:      { type: "f", value: scene.fog.far },
           blockDim: {value: blockDim},
           effect: {value: 0.0},
           tile: {value: new THREE.Vector2(2,2)},
@@ -143,7 +149,8 @@ function init(){
             vertexShader: document.getElementById('vertexShader').textContent,
             fragmentShader: document.getElementById('fragmentShader').textContent,
             lights: true,
-            transparent: true
+            transparent: true,
+            fog: true
     });
     wallMaterial.uniforms.textureSampler.value = wallTexture;
     wallMaterial.needsUpdate = true;
@@ -178,8 +185,8 @@ function init(){
 
     //inizializzo gli id delle mesh del blocco in cui mi trovo
     wallsId = meshMap["0-0"].split("-").slice(2);
-
+    console.log(wallsId);
 
     /* LIGHTS */
-    var ambLight = new THREE.AmbientLight( 0xffffff );    
+    var ambLight = new THREE.AmbientLight( 0xffffff ); 
 }

@@ -1,49 +1,17 @@
 function genBlock(pos,wallsFlag){
-    //se il blocco esiste già oppure è fuori dalla griglia non lo creo 
+    //se il blocco esiste già non lo creo 
     if(!checkMap(meshMap,pos))
         return false;
-
-    var walls = [];
-
-    //left (looking in the direction of negative z)
-    walls[0] = new THREE.Mesh(plane,wallMaterial);
-    walls[0].position.set(-blockDim/2 + (pos[0]*blockDim),blockDim/2,(pos[1]*blockDim));
-    walls[0].rotation.set(0,Math.PI/2,0);
-    walls[0].matrixAutoUpdate  = true;
-    walls[0].castShadow = true;
-    walls[0].receiveShadow = true;
-
-    //front (looking in the direction of negative z)
-    walls[1] = new THREE.Mesh(plane,wallMaterial);
-    walls[1].position.set((pos[0]*blockDim),blockDim/2,-blockDim/2 + (pos[1]*blockDim));
-    walls[1].rotation.set(0,0,0);
-    walls[1].matrixAutoUpdate  = true;
-    walls[1].castShadow = true;
-    walls[1].receiveShadow = true;
-
-    //right (looking in the direction of negative z)
-    walls[2] = new THREE.Mesh(plane,wallMaterial);
-    walls[2].position.set(blockDim/2 + (pos[0]*blockDim),blockDim/2,(pos[1]*blockDim));
-    walls[2].rotation.set(0,-Math.PI/2,0);
-    walls[2].matrixAutoUpdate  = true;
-    walls[2].castShadow = true;
-    walls[2].receiveShadow = true;
-
-    //back (looking in the direction of negative z)
-    walls[3] = new THREE.Mesh(plane,wallMaterial);
-    walls[3].position.set((pos[0]*blockDim),blockDim/2,+blockDim/2 + (pos[1]*blockDim));
-    walls[3].rotation.set(0,Math.PI,0);
-    walls[3].matrixAutoUpdate  = true;
-    walls[3].castShadow = true;
-    walls[3].receiveShadow = true;
 
     //floor and ceiling
     var floor = new THREE.Mesh(plane, wallMaterial);
     var ceiling = new THREE.Mesh(plane, wallMaterial);
+
     floor.position.set((pos[0]*blockDim),0,(pos[1]*blockDim));
     floor.rotation.set(Math.PI/2,Math.PI,0);
     floor.castShadow = true;
     floor.receiveShadow = true;
+
     ceiling.position.set((pos[0]*blockDim),blockDim,(pos[1]*blockDim));   
     ceiling.rotation.set(Math.PI/2,0,0);
     ceiling.castShadow = true;
@@ -53,18 +21,59 @@ function genBlock(pos,wallsFlag){
     scene.add(ceiling);
 
     meshMap[pos[0] + "-" + pos[1]] = floor.id + "-" + ceiling.id;
-    mazeMap[pos[0] + "-" + pos[1]] = wallsFlag;
 
-    for(var i = 0; i < 4; i++){
-        if(wallsFlag[i] == 1){
-            scene.add(walls[i]);
-            meshMap[pos[0] + "-" + pos[1]] += "-" + walls[i].id;
-        }
-            delete walls[i];
+    var walls = [];
+    var object;
+    if(wallsFlag[0] == 1){
+        //left (looking in the direction of negative z)
+        object = new THREE.Mesh(plane,wallMaterial);
+        object.position.set(-blockDim/2 + (pos[0]*blockDim),blockDim/2,(pos[1]*blockDim));
+        object.rotation.set(0,Math.PI/2,0);
+        object.matrixAutoUpdate  = true;
+        object.castShadow = true;
+        object.receiveShadow = true;
+        meshMap[pos[0] + "-" + pos[1]] += "-" + object.id;
+        scene.add(object);
     }
+    if(wallsFlag[1] == 1){
+        //front (looking in the direction of negative z)
+        object = new THREE.Mesh(plane,wallMaterial);
+        object.position.set((pos[0]*blockDim),blockDim/2,-blockDim/2 + (pos[1]*blockDim));
+        object.rotation.set(0,0,0);
+        object.matrixAutoUpdate  = true;
+        object.castShadow = true;
+        object.receiveShadow = true;
+        meshMap[pos[0] + "-" + pos[1]] += "-" + object.id;
+        scene.add(object);
+    }
+    if(wallsFlag[2] == 1){
+        //right (looking in the direction of negative z)
+        object = new THREE.Mesh(plane,wallMaterial);
+        object.position.set(blockDim/2 + (pos[0]*blockDim),blockDim/2,(pos[1]*blockDim));
+        object.rotation.set(0,-Math.PI/2,0);
+        object.matrixAutoUpdate  = true;
+        object.castShadow = true;
+        object.receiveShadow = true;
+        meshMap[pos[0] + "-" + pos[1]] += "-" + object.id;
+        scene.add(object);
+    }
+    if(wallsFlag[3] == 1){
+        //back (looking in the direction of negative z)
+        object = new THREE.Mesh(plane,wallMaterial);
+        object.position.set((pos[0]*blockDim),blockDim/2,+blockDim/2 + (pos[1]*blockDim));
+        object.rotation.set(0,Math.PI,0);
+        object.matrixAutoUpdate  = true;
+        object.castShadow = true;
+        object.receiveShadow = true;
+        meshMap[pos[0] + "-" + pos[1]] += "-" + object.id;
+        scene.add(object);
+    }
+
+    mazeMap[pos[0] + "-" + pos[1]] = wallsFlag;
 
     delete floor;
     delete ceiling;
+    delete object;
     plane.dispose();
     wallMaterial.dispose();
     floorMaterial.dispose();
@@ -106,42 +115,21 @@ function genLight(pos,dir){
     //light.shadow.mapSize.height = 512; // default
     //light.shadow.camera.near = 0.5;       // default
     //light.shadow.camera.far = 500      // default
-    scene.add(light);
-    var helper = new THREE.PointLightHelper( light, 1 );
-    //scene.add(helper);
+
+
+       
+    var torchModel = model3d.clone();
+    //torchModel.copy(model);
+    torchModel.scale.set(0.1,0.1,0.1);
+    torchModel.position.set( posX, blockDim * 0.53, posZ );
+    
+    scene.add(light);  
+    scene.add( torchModel );
+    
     delete light;
-    delete helper;
-    lightMap[pos[0] + "-" + pos[1]] = light.id + "-" + helper.id;
+    delete torchModel;
 
-    var loader = new THREE.OBJLoader();
-
-    // load a resource
-    loader.load(
-        // resource URL
-        'models/torch.OBJ',
-        // called when resource is loaded
-        function ( object ) {
-
-            scene.add( object );
-            object.scale.set(0.1,0.1,0.1);
-            object.position.set( posX, blockDim * 0.53, posZ );
-            lightMap[pos[0] + "-" + pos[1]] += "-" + object.id;
-        },
-        // called when loading is in progresses
-        function ( xhr ) {
-
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-        },
-        // called when loading has errors
-        function ( error ) {
-
-            console.log( 'An error happened' );
-
-        }
-
-        
-    );
+    lightMap[pos[0] + "-" + pos[1]] = light.id + "-" + torchModel.id;   
 }
 
 function remLight(pos){
