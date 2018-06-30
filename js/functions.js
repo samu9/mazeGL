@@ -71,12 +71,12 @@ function genBlock(pos,wallsFlag){
 
     mazeMap[pos[0] + "-" + pos[1]] = wallsFlag;
 
-    delete floor;
-    delete ceiling;
-    delete object;
-    plane.dispose();
-    wallMaterial.dispose();
-    floorMaterial.dispose();
+    //delete floor;
+    //delete ceiling;
+    //delete object;
+    //plane.dispose();
+    //wallMaterial.dispose();
+    //floorMaterial.dispose();
 
     return true; 
 }
@@ -110,24 +110,21 @@ function genLight(pos,dir){
     var posZ = (dir[1] != 0)? pos[1]*blockDim : pos[1]*blockDim + halfBlock * lightDistFromWall;
     var light = new THREE.PointLight(lightColor);
     light.position.set( posX, blockDim * lightHeight, posZ );
-    light.castShadow = true;
+    scene.add(light);
+
+    //light.castShadow = true;
     //light.shadow.mapSize.width = 512;  // default
     //light.shadow.mapSize.height = 512; // default
     //light.shadow.camera.near = 0.5;       // default
     //light.shadow.camera.far = 500      // default
 
-
-       
     var torchModel = model3d.clone();
-    //torchModel.copy(model);
     torchModel.scale.set(0.1,0.1,0.1);
     torchModel.position.set( posX, blockDim * 0.53, posZ );
+    scene.add(torchModel);
     
-    scene.add(light);  
-    scene.add( torchModel );
-    
-    delete light;
-    delete torchModel;
+    //delete light;
+    //delete torchModel;
 
     lightMap[pos[0] + "-" + pos[1]] = light.id + "-" + torchModel.id;   
 }
@@ -174,9 +171,11 @@ function labyrinth(){
     var deadEnd = true;
     var freeWalls = [];
     var walls = [0,0,0,0];
+    /*
     var front = (entrance + 2) % 4;
     var left = (entrance + 1) % 4;
     var right = (entrance + 3) % 4;
+    */
 
     var wallDir;
     //determino e gestisco i muri liberi del nuovo blocco
@@ -189,7 +188,7 @@ function labyrinth(){
                 //if(i == left || i == right) walls[i] = 1; //per debug
                 if(walls[i] == 0){ //lato libero 
                     freeWalls.push(i); //mi salvo gli indici dei lati liberi
-                    deadEnd = false; //so che senza contare da dove arrivo, c'è almeno un'altra parete libera
+                    //deadEnd = false; //so che senza contare da dove arrivo, c'è almeno un'altra parete libera
                 }
             }
             else

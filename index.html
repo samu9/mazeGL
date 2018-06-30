@@ -2,7 +2,7 @@
 <html> 
     <head> 
         <meta charset=utf-8> 
-        <title>Three.js</title> 
+        <title>mazeGL</title> 
     </head> 
     <body> 
         <div id = "parameters"></div>
@@ -56,7 +56,7 @@
                 ///vec2 xy = gl_TexCoord[0].xy;
                 //vec2 phase = fract(xy / Tile);
                 
-                addedLights = vec4(0.0,0.0,0.0,1);
+                addedLights = vec4(0.0,0.0,0.0,1.0);
                 
                 float dist;
                 float radius;
@@ -74,7 +74,6 @@
 
                     vec3 lightDirection = normalize(lightVec);
                     addedLights.rgb += clamp(max(0.0,dot(-lightDirection,vecNormal)) * pointLights[l].color * attenuation,0.0,1.0);
-                    //addedLights.rgb += clamp(pointLights[l].color * attenuation,0.0,1.0);
                 }
                 
                 gl_FragColor = texture2D(textureSampler,vUv) * addedLights;
