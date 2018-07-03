@@ -57,3 +57,16 @@ function httpRequest(address) {
     }
     return false;
  }
+
+ function updateInfo(){
+     /*
+    var temp = "closestBlocks:<br>";
+    for(var i = 0; i < closestBlocks.length; i++)
+        temp += closestBlocks[i] + "<br>";
+
+    temp += "nextBlocks:<br>";
+    for(var i = 0; i < nextBlocks.length; i++)
+        temp += nextBlocks[i] + "<br>"; 
+    */
+    paramBox.innerHTML = "gridX: " + newGridPos[0] + "<br>" + "gridZ: " + newGridPos[1];// + "<br>" + temp;
+ }

@@ -57,6 +57,70 @@
                 //vec2 phase = fract(xy / Tile);
                 
                 addedLights = vec4(0.0,0.0,0.0,1.0);
+                //addedLights = vec4(1.0,1.0,1.0,1.0);
+                
+                float dist;
+                float radius;
+                float a = 0.00;
+                float b = 1.0 / (blockDim * blockDim * 0.5);
+                float attenuation = 0.0;
+                vec3 lightVec;
+                
+                radius = sqrt(1.0 / (b * blockDim));
+                
+                for(int l = 0; l < NUM_POINT_LIGHTS; l++) {
+                    lightVec = vecPos - pointLights[l].position;
+                    //attenuation = 1.0 / (1.0 + a * length(lightVec) + b * length(lightVec)*length(lightVec));
+                    attenuation = clamp(1.0 - length(lightVec) * length(lightVec)/(blockDim * blockDim * 1.8),0.0,1.0);
+
+                    vec3 lightDirection = normalize(lightVec);
+                    addedLights.rgb += clamp(max(0.0,dot(-lightDirection,vecNormal)) * pointLights[l].color * attenuation,0.0,1.0);
+                }
+                
+                gl_FragColor = texture2D(textureSampler,vUv) * addedLights;
+
+                #ifdef USE_FOG
+                #ifdef USE_LOGDEPTHBUF_EXT
+                    float depth = gl_FragDepthEXT / gl_FragCoord.w;
+                #else
+                    float depth = gl_FragCoord.z / gl_FragCoord.w;
+                #endif
+                float fogFactor = smoothstep( fogNear, fogFar, depth );
+                gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
+                #endif
+            }
+        </script>
+        <script type="x-shader/x-fragment" id="fragmentShader1">
+            precision highp float;
+
+            varying vec2 vUv;
+            varying vec3 vecPos;
+            varying vec3 vecNormal;
+
+            uniform float blockDim;
+            uniform vec3 fogColor;
+            uniform float fogNear;
+            uniform float fogFar;
+
+            uniform float effect;
+            uniform sampler2D textureSampler;
+            vec4 addedLights;
+
+            uniform vec2 tile;
+
+            struct PointLight {
+                vec3 color;
+                vec3 position; 
+                float distance; 
+            };
+            //uniform PointLight pointLights[NUM_POINT_LIGHTS];
+
+            void main() {
+                ///vec2 xy = gl_TexCoord[0].xy;
+                //vec2 phase = fract(xy / Tile);
+                
+                //addedLights = vec4(0.0,0.0,0.0,1.0);
+                addedLights = vec4(1.0,1.0,1.0,1.0);
                 
                 float dist;
                 float radius;
@@ -66,7 +130,7 @@
                 vec3 lightVec;
                 
                 radius = sqrt(1.0 / (b * blockDim));
-
+                /*
                 for(int l = 0; l < NUM_POINT_LIGHTS; l++) {
                     lightVec = vecPos - pointLights[l].position;
                     //attenuation = 1.0 / (1.0 + a * length(lightVec) + b * length(lightVec)*length(lightVec));
@@ -75,9 +139,8 @@
                     vec3 lightDirection = normalize(lightVec);
                     addedLights.rgb += clamp(max(0.0,dot(-lightDirection,vecNormal)) * pointLights[l].color * attenuation,0.0,1.0);
                 }
-                
+                */
                 gl_FragColor = texture2D(textureSampler,vUv) * addedLights;
-                //gl_FragColor = addedLights;
 
                 #ifdef USE_FOG
                 #ifdef USE_LOGDEPTHBUF_EXT
@@ -92,11 +155,11 @@
         </script>
 
 
-
-        <script src="js/three.js"></script>
-        <script src="js/PointerLockControls.js"></script>
-        <script src="js/OBJLoader.js"></script>
-        <script src="js/stats.min.js"></script>
+        <script src="js/three/three.js"></script>
+        <script src="js/three/PointerLockControls.js"></script>
+        <script src="js/three/LoaderSupport.js"></script>
+        <script src="js/three/OBJLoader2.js"></script>
+        <script src="js/three/stats.min.js"></script>
 
         <script src="js/parameters.js"></script>
         <script src="js/utilities.js"></script>
@@ -107,13 +170,13 @@
             var scene, camera, renderer;
             var controls;
             var texture, material;
-            var wallTexture, floorTexture, wallMaterial, floorMaterial;
-            var plane;
+            var wallTexture, floorTexture, wallMaterial, floorMaterial,torchMaterial, torchTexture, torchMaterial;
+            var plane,cylinder1,cylinder2,torch;
 
             
-            var OBJfile = httpRequest("models/torch.OBJ");
-            var loader = new THREE.OBJLoader();
-            var model3d = loader.parse(OBJfile);
+            //var OBJfile = httpRequest("models/torch.OBJ");
+            //var loader = new THREE.OBJLoader2();
+            //var model3d = loader.parse(OBJfile);
             
             /* mappe per tenere traccia delle mesh, del labirinto generato e delle luci */
             var meshMap = {};

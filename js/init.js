@@ -14,7 +14,7 @@ function init(){
 
 
     /* CAMERA */
-    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 ); 
+    camera = new THREE.PerspectiveCamera( 75, WIDTH / HEIGHT, 0.1, 1000 ); 
     camera.position.set( 0, 0, 0 );
     camera.lookAt(0,40,0);
     scene.add(camera);
@@ -109,20 +109,38 @@ function init(){
 
     /* MESHES */
     //geometry
-    plane = new THREE.PlaneGeometry(blockDim,blockDim,1,1);
+    plane = new THREE.PlaneBufferGeometry(blockDim,blockDim,1,1);
+
+    cylinder1 = new THREE.CylinderGeometry( 1.5, 1.5, 3, 32 ); //fiamma
+    cylinder2 = new THREE.CylinderGeometry( 1, 0.5, 10, 32 ); //manico
+    torch = new THREE.Geometry();
+
+    torchTexture = new THREE.TextureLoader().load( "textures/wood.jpg" );
+    //torchMaterial = new THREE.MeshLambertMaterial({map: torchTexture});
+
+    var torch1 = new THREE.Mesh(cylinder1);
+    var torch2 = new THREE.Mesh(cylinder2);
+    torch1.position.set(0,6.5,0);
+    torch1.updateMatrix();
+    torch.merge(torch1.geometry,torch1.matrix,1);
+    torch2.updateMatrix();
+    torch.merge(torch2.geometry,torch2.matrix,1);
+
+
     //textures
     wallTexture = new THREE.TextureLoader().load( "textures/stonewall.jpeg" );
     wallTexture.wrapS = THREE.RepeatWrapping;
     wallTexture.wrapT = THREE.RepeatWrapping;
     wallTexture.repeat.set( 2, 2 );
     
+    /*
     if(!debug)
         wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, transparent: true, opacity: 0.4}); //texture trasparente per debug
     else
         wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, side: THREE.DoubleSide});
+*/
 
-
-    //PROVA SHADER MATERIAL
+    //SHADER MATERIAL
     var customUniforms = THREE.UniformsUtils.merge( [
         THREE.UniformsLib["lights"],
         THREE.UniformsLib["shadowmap"],
@@ -134,11 +152,31 @@ function init(){
             fogColor:    { type: "c", value: scene.fog.color },
             fogNear:     { type: "f", value: scene.fog.near },
             fogFar:      { type: "f", value: scene.fog.far },
-          blockDim: {value: blockDim},
-          effect: {value: 0.0},
-          tile: {value: new THREE.Vector2(2,2)},
-          textureSampler: {type: 't', value: null},
-          lightIntensity: {type: 'f', value: 1.0}
+            blockDim: {value: blockDim},
+            effect: {value: 0.0},
+            tile: {value: new THREE.Vector2(2,2)},
+            textureSampler: {type: 't', value: null},
+            lightIntensity: {type: 'f', value: 1.0}
+        }
+    
+    ] );
+
+    var customUniforms1 = THREE.UniformsUtils.merge( [
+        THREE.UniformsLib["lights"],
+        THREE.UniformsLib["shadowmap"],
+        {
+            topColor:    { type: "c", value: new THREE.Color( 0x0077ff ) },
+            bottomColor: { type: "c", value: new THREE.Color( 0xffffff ) },
+            offset:      { type: "f", value: 33 },
+            exponent:    { type: "f", value: 0.6 },
+            fogColor:    { type: "c", value: scene.fog.color },
+            fogNear:     { type: "f", value: scene.fog.near },
+            fogFar:      { type: "f", value: scene.fog.far },
+            blockDim: {value: blockDim},
+            effect: {value: 0.0},
+            tile: {value: new THREE.Vector2(2,2)},
+            textureSampler: {type: 't', value: null},
+            lightIntensity: {type: 'f', value: 1.0}
         }
     
     ] );
@@ -156,6 +194,18 @@ function init(){
     wallMaterial.needsUpdate = true;
 
 
+    torchMaterial = new THREE.ShaderMaterial({
+        uniforms: customUniforms1,
+        vertexShader: document.getElementById('vertexShader').textContent,
+        fragmentShader: document.getElementById('fragmentShader').textContent,
+        lights: true,
+        transparent: true,
+        fog: true
+    });
+    torchMaterial.uniforms.textureSampler.value = torchTexture;
+    torchMaterial.needsUpdate = true;
+
+
 
     /* FLOOR */
     floorTexture = new THREE.TextureLoader().load( "textures/stonefloor.jpg" );
@@ -164,19 +214,10 @@ function init(){
     floorTexture.repeat.set( 2, 2 );
     floorMaterial = new THREE.MeshLambertMaterial({map: floorTexture, side: THREE.DoubleSide});
     
-/*
-    var cube = new THREE.CubeGeometry(10,10,10);
-    texture = new THREE.TextureLoader().load( "textures/crate.jpg" );
-    material = new THREE.MeshPhongMaterial({map: texture});
-    box = new THREE.Mesh( cube, material );
-    
-    //ruoto e traslo
-    box.position.set(-blockDim/2+box.geometry.parameters.width/2,box.geometry.parameters.height/2,0);
-  */
+
 
     /* INIZIALIZZO IL LABIRINTO */
     genBlock([0,0],[1,0,1,1]);
-    
     for(var i = -halfGrid+1; i < 0; i++){
         genBlock([0,i],[1,0,1,0]);
         genLight([0,i],[0,-1]);
@@ -185,8 +226,10 @@ function init(){
 
     //inizializzo gli id delle mesh del blocco in cui mi trovo
     wallsId = meshMap["0-0"].split("-").slice(2);
-    console.log(wallsId);
 
     /* LIGHTS */
-    var ambLight = new THREE.AmbientLight( 0xffffff ); 
+    var ambLight = new THREE.AmbientLight( 0xffffff );
+    
+    /* STAMPO POSIZIONE NELLA GRIGLIA */
+    updateInfo();
 }

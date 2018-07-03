@@ -15,8 +15,8 @@ canvas{
     display: block;
     border: 1px solid black;
     padding: 5px;
-    right: 5%;
-    top: 5%;
+    right: 0%;
+    top: 0%;
 }
 
 #ids{

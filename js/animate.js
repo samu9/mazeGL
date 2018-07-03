@@ -46,18 +46,10 @@ function animate() {
         
         wallsId = (newGridPos[0] + "-" + newGridPos[1] in meshMap)? meshMap[newGridPos[0] + "-" + newGridPos[1]].split("-").slice(2) : false;
 
-
-        /* stampo posizione e lista dei blocchi */
-        /*
-        var temp = "closestBlocks:<br>";
-        for(var i = 0; i < closestBlocks.length; i++)
-            temp += closestBlocks[i] + "<br>";
-
-        temp += "nextBlocks:<br>";
-        for(var i = 0; i < nextBlocks.length; i++)
-            temp += nextBlocks[i] + "<br>"; 
-            */
-        paramBox.innerHTML = "gridX: " + newGridPos[0] + "<br>" + "gridZ: " + newGridPos[1];// + "<br>" + temp;
+        /* STAMPO POSIZIONE NELLA GRIGLIA */
+        updateInfo();
+        
+        
     }
     checkCollision();
 

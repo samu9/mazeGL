@@ -103,8 +103,9 @@ function remBlock(pos){
 function genLight(pos,dir){
     if(!checkMap(lightMap,pos)) return;
 
-    var lightDistFromWall = 0.85;
+    var lightDistFromWall = 0.80;
     var lightHeight = 0.7;
+    var torchRotation = 0.3
 
     var posX = (dir[0] != 0)? pos[0]*blockDim : pos[0]*blockDim + halfBlock * lightDistFromWall;
     var posZ = (dir[1] != 0)? pos[1]*blockDim : pos[1]*blockDim + halfBlock * lightDistFromWall;
@@ -118,15 +119,25 @@ function genLight(pos,dir){
     //light.shadow.camera.near = 0.5;       // default
     //light.shadow.camera.far = 500      // default
 
-    var torchModel = model3d.clone();
-    torchModel.scale.set(0.1,0.1,0.1);
-    torchModel.position.set( posX, blockDim * 0.53, posZ );
+    //var pointLightHelper = new THREE.PointLightHelper( light, 1 );
+    //scene.add( pointLightHelper );
+
+    var torchModel = new THREE.Mesh(torch,torchMaterial);
+    torchModel.position.set( posX, blockDim * 0.55, posZ );
+    if(dir[0] != 0){
+        torchModel.rotation.x = -torchRotation;
+        torchModel.position.z += 2.0;
+    }
+    if(dir[1] != 0){
+        torchModel.rotation.z = torchRotation;
+        torchModel.position.x += 2.0;
+    }
     scene.add(torchModel);
-    
+   
     //delete light;
     //delete torchModel;
 
-    lightMap[pos[0] + "-" + pos[1]] = light.id + "-" + torchModel.id;   
+    lightMap[pos[0] + "-" + pos[1]] = light.id + "-" + torchModel.id;
 }
 
 function remLight(pos){
