@@ -8,8 +8,6 @@ function init(){
     /* RENDERER */
     renderer = new THREE.WebGLRenderer({antialias:true}); 
     renderer.setSize( WIDTH, HEIGHT ); 
-    //renderer.shadowMap.enabled = true;
-    //renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
     document.body.appendChild( renderer.domElement );
 
 
@@ -29,7 +27,7 @@ function init(){
 
     controls = new THREE.PointerLockControls(camera);
     scene.add(controls.getObject());
-    controls.getObject().position.y = blockDim * 0.65;
+    controls.getObject().position.y = blockDim * camHeight;
 
     /* CONTROLS */
     var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
@@ -111,12 +109,11 @@ function init(){
     //geometry
     plane = new THREE.PlaneBufferGeometry(blockDim,blockDim,1,1);
 
-    cylinder1 = new THREE.CylinderGeometry( 1.5, 1.5, 3, 32 ); //fiamma
-    cylinder2 = new THREE.CylinderGeometry( 1, 0.5, 10, 32 ); //manico
+    cylinder1 = new THREE.CylinderGeometry( 1.5, 1.5, 3, 32 );
+    cylinder2 = new THREE.CylinderGeometry( 1, 0.5, 10, 32 );
     torch = new THREE.Geometry();
 
     torchTexture = new THREE.TextureLoader().load( "textures/wood.jpg" );
-    //torchMaterial = new THREE.MeshLambertMaterial({map: torchTexture});
 
     var torch1 = new THREE.Mesh(cylinder1);
     var torch2 = new THREE.Mesh(cylinder2);
@@ -133,12 +130,7 @@ function init(){
     wallTexture.wrapT = THREE.RepeatWrapping;
     wallTexture.repeat.set( 2, 2 );
     
-    /*
-    if(!debug)
-        wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, transparent: true, opacity: 0.4}); //texture trasparente per debug
-    else
-        wallMaterial = new THREE.MeshLambertMaterial({map: wallTexture, side: THREE.DoubleSide});
-*/
+
 
     //SHADER MATERIAL
     var customUniforms = THREE.UniformsUtils.merge( [
@@ -216,7 +208,7 @@ function init(){
     
 
 
-    /* INIZIALIZZO IL LABIRINTO */
+    /* INITIALIZING THE MAZE */
     genBlock([0,0],[1,0,1,1]);
     for(var i = -halfGrid+1; i < 0; i++){
         genBlock([0,i],[1,0,1,0]);
@@ -224,12 +216,12 @@ function init(){
     }
     closestBlocks.push([0,-(halfGrid),0,-1]);
 
-    //inizializzo gli id delle mesh del blocco in cui mi trovo
+
     wallsId = meshMap["0-0"].split("-").slice(2);
 
     /* LIGHTS */
     var ambLight = new THREE.AmbientLight( 0xffffff );
     
-    /* STAMPO POSIZIONE NELLA GRIGLIA */
+
     updateInfo();
 }

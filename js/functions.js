@@ -1,5 +1,5 @@
 function genBlock(pos,wallsFlag){
-    //se il blocco esiste già non lo creo 
+    //if the block already exists, return
     if(!checkMap(meshMap,pos))
         return false;
 
@@ -71,18 +71,12 @@ function genBlock(pos,wallsFlag){
 
     mazeMap[pos[0] + "-" + pos[1]] = wallsFlag;
 
-    //delete floor;
-    //delete ceiling;
-    //delete object;
-    //plane.dispose();
-    //wallMaterial.dispose();
-    //floorMaterial.dispose();
 
     return true; 
 }
 
 function remBlock(pos){
-    //se il blocco è già vuoto
+    //if the block is already empty, return
     if(checkMap(meshMap,[pos[0],pos[1]]))
         return false;
 
@@ -113,12 +107,6 @@ function genLight(pos,dir){
     light.position.set( posX, blockDim * lightHeight, posZ );
     scene.add(light);
 
-    //light.castShadow = true;
-    //light.shadow.mapSize.width = 512;  // default
-    //light.shadow.mapSize.height = 512; // default
-    //light.shadow.camera.near = 0.5;       // default
-    //light.shadow.camera.far = 500      // default
-
     //var pointLightHelper = new THREE.PointLightHelper( light, 1 );
     //scene.add( pointLightHelper );
 
@@ -134,14 +122,13 @@ function genLight(pos,dir){
     }
     scene.add(torchModel);
    
-    //delete light;
-    //delete torchModel;
+
 
     lightMap[pos[0] + "-" + pos[1]] = light.id + "-" + torchModel.id;
 }
 
 function remLight(pos){
-    //se il blocco è già vuoto
+    //it there's no light already
     if(checkMap(lightMap,[pos[0],pos[1]])) return false;
 
     var remIds = lightMap[pos[0] + "-" + pos[1]].split("-");
@@ -163,9 +150,7 @@ function labyrinth(){
     var temp = closestBlocks.shift();
     var blockPos = temp.slice(0,2);
 
-    //console.log("extracted: " + blockPos);
-
-    if(!checkGrid(blockPos)){ //non sono riuscito a creare il blocco (perchè è fuori dalla mia griglia), lo rimetto in pila
+    if(!checkGrid(blockPos)){ //block creation gone wrong, push back again
         nextBlocks.push(temp);
         return;
     }
@@ -173,59 +158,58 @@ function labyrinth(){
     if(!checkMap(mazeMap,blockPos))
         return;
 
-        //devo controllare: se è in mazeMap ma non in meshMap devo ricostruirlo, se è anche in meshMap annullo, altrimenti lo genero
 
-    var dir = temp.slice(2,4); //in che direzione si entra nel blocco
-
-    //determino l'ingresso del blocco che vado a creare
+    /* which direction the block must be entered */
+    var dir = temp.slice(2,4); 
     var entrance = directionToWall(dir);
     var deadEnd = true;
     var freeWalls = [];
     var walls = [0,0,0,0];
+    
     /*
     var front = (entrance + 2) % 4;
     var left = (entrance + 1) % 4;
     var right = (entrance + 3) % 4;
     */
 
+    /* randomly choosing and managing free walls */
     var wallDir;
-    //determino e gestisco i muri liberi del nuovo blocco
     for(var i = 0; i < 4; i++){
-        if(i != entrance){ //lascio libero l'ingresso
-            wallDir = freeWallToDirection(i);
-            if(checkMap(mazeMap,sumArrays(blockPos,wallDir))){
-                //se non ci sono altre vie libere faccio in modo che il labirinto continui
-                walls[i] = (nextBlocks.length == 0)? 0 : Math.floor(Math.random()*2); //scelgo casualmente se il lato è libero o no
-                //if(i == left || i == right) walls[i] = 1; //per debug
-                if(walls[i] == 0){ //lato libero 
-                    freeWalls.push(i); //mi salvo gli indici dei lati liberi
-                    //deadEnd = false; //so che senza contare da dove arrivo, c'è almeno un'altra parete libera
-                }
-            }
-            else
-                walls[i] = 1; //se il blocco adiacente non è libero chiudo il lato  
+        if(i == entrance) continue; //the entrance must be free
+
+        wallDir = freeWallToDirection(i);
+        if(checkMap(mazeMap,sumArrays(blockPos,wallDir))){ //if the adjacent block in wallDir direction is empty
+            walls[i] = (nextBlocks.length == 0 && freeWalls.length == 0)? 0 : Math.floor(Math.random()*2);
+            //if(i == left || i == right) walls[i] = 1; //debug
+            if(walls[i] == 0)
+                freeWalls.push(i); //saving free walls indices   
         }
+        else
+            walls[i] = 1; //if the adjacent block is not empty, close that side        
     }
 
-    genBlock(blockPos,walls); //genero il blocco
+    genBlock(blockPos,walls);
 
     var newDir;
     var newBlockPos;
     var straight;
     var endStraight;
     var straightLength;
+    var l;
+
+    /* generating hallways at the free walls */
     for(var i = 0; i < freeWalls.length; i++){
-        //genero un blocco a dritto
         straightLength = Math.floor(Math.random()*halfGrid);
         newBlockPos = blockPos;
         newDir = freeWallToDirection(freeWalls[i]);
         straight = (newDir[0] == 0)? [1,0,1,0] : [0,1,0,1];
+
+        /* it the hallway meets already generated blocks close the wall */
         endStraight = Array.from(straight);
-        endStraight[directionToWall(newDir.map(value => -value))] = 1; //blocco a dritto chiuso alla fine a seconda della direzione (negata in questo caso)
+        endStraight[directionToWall(newDir.map(value => -value))] = 1;
         newBlockPos = sumArrays(newBlockPos,newDir);
         
-        // genero i blocchi "a dritto" - voglio che almeno un blocco venga generato in modo gestire meglio le ramificazioni
-        var l = 0;
+        l = 0;
         do{
             if(!checkMap(mazeMap,newBlockPos)) break;
             if(checkMap(mazeMap,sumArrays(newBlockPos,newDir))){
@@ -242,6 +226,7 @@ function labyrinth(){
             l++;
         } while(l <= straightLength);
 
+        /* pushing the free positions where to generate next blocks */
         if(checkMap(mazeMap,newBlockPos))
             nextBlocks.push([newBlockPos[0],newBlockPos[1],newDir[0],newDir[1]]);  
     }
@@ -249,7 +234,6 @@ function labyrinth(){
 
 function getClosest(blocks){
     var pos = blocks[0].slice(0,2);
-    //var nearest = pos;
     var nearestIndex = 0;
     var dist = pointDistance(newGridPos,pos);
     var min = dist;
@@ -259,7 +243,6 @@ function getClosest(blocks){
         dist = pointDistance(newGridPos,pos);
         if(dist < min){
             min = dist;
-            //nearest = pos;
             nearestIndex = i;
         }
     }
@@ -270,8 +253,6 @@ function getClosest(blocks){
 function reorderBlocks(){
     if(nextBlocks.length == 0)
         return;
-
-    //console.log("nextBlocks: " + nextBlocks);
     
     while(closestBlocks.length > 0)
         nextBlocks.push(closestBlocks.pop())
@@ -295,13 +276,11 @@ function reorderBlocks(){
             }
         }
         
-        if(!checkGrid(nearest)) //se il più vicino trovato è fuori dalla griglia lo lascio in nextBlocks
+        if(!checkGrid(nearest))
             return;
         
-        closestBlocks.push(nextBlocks[nearestIndex]); //prendo l'indice del blocco più vicino e lo metto in closestBlocks
-        //console.log("block: " + nearest + ", distance: " + pointDistance(nearest,newGridPos))
+        closestBlocks.push(nextBlocks[nearestIndex]);
         nextBlocks.splice(nearestIndex,1);
-        
         j++;  
     }
 }
