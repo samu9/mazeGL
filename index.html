@@ -97,12 +97,12 @@
             var wallTexture, wallMaterial, torchTexture, torchMaterial;
             var plane,cylinder1,cylinder2,torch;
             
-            /* mappe per tenere traccia delle mesh, del labirinto generato e delle luci */
+            /* MAPS FOR MAZE, MESHES AND LIGHTS */
             var meshMap = {};
             var mazeMap = {};
             var lightMap = {};
 
-            /* variabili per il movimento */
+            /* MOVEMENT VARIABLES */
             var controlsEnabled = false;
             var moveForward = false;
             var moveBackward = false;
@@ -112,16 +112,16 @@
             var velocity = new THREE.Vector3();
             var wallsId;
             
-            /* posizione sulla griglia prima e dopo aver raggiunto un nuovo blocco */
-            var position = [0,0]; //coordinate della telecamera
-            var gridPos = [0,0]; //coordinate normalizzate alla dimensione del blocco
+            /* GRID POSITION BEFORE AND AFTER A NEW BLOCK IS REACHED */
+            var position = [0,0]; //camera coordinates
+            var gridPos = [0,0]; //normalized coordinates
             var newGridPos = [0,0];
             
             var wallsId = [];
 
-            /* lista dei blocchi da generare quando si è in prossimità di essi */
-            var nextBlocks = [];
-            var closestBlocks = [];
+            /* BLOCK LISTS */
+            var nextBlocks = []; //blocks to be generated
+            var closestBlocks = []; //nearest blocks to be generated
             
             var paramBox = document.getElementById("parameters");
 

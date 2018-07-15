@@ -106,15 +106,11 @@ function init(){
 
 
     /* MESHES */
-    //geometry
     plane = new THREE.PlaneBufferGeometry(blockDim,blockDim,1,1);
 
     cylinder1 = new THREE.CylinderGeometry( 1.5, 1.5, 3, 32 );
     cylinder2 = new THREE.CylinderGeometry( 1, 0.5, 10, 32 );
     torch = new THREE.Geometry();
-
-    torchTexture = new THREE.TextureLoader().load( "textures/wood.jpg" );
-
     var torch1 = new THREE.Mesh(cylinder1);
     var torch2 = new THREE.Mesh(cylinder2);
     torch1.position.set(0,6.5,0);
@@ -124,15 +120,11 @@ function init(){
     torch.merge(torch2.geometry,torch2.matrix,1);
 
 
-    //textures
+    /* TEXTURES */
     wallTexture = new THREE.TextureLoader().load( "textures/stonewall.jpeg" );
-    wallTexture.wrapS = THREE.RepeatWrapping;
-    wallTexture.wrapT = THREE.RepeatWrapping;
-    wallTexture.repeat.set( 2, 2 );
-    
+    torchTexture = new THREE.TextureLoader().load( "textures/wood.jpg" );
 
-
-    //SHADER MATERIAL
+    /* SHADER MATERIAL */
     var customUniforms = THREE.UniformsUtils.merge( [
         THREE.UniformsLib["lights"],
         THREE.UniformsLib["shadowmap"],
@@ -196,15 +188,6 @@ function init(){
     });
     torchMaterial.uniforms.textureSampler.value = torchTexture;
     torchMaterial.needsUpdate = true;
-
-
-
-    /* FLOOR */
-    floorTexture = new THREE.TextureLoader().load( "textures/stonefloor.jpg" );
-    floorTexture.wrapS = THREE.RepeatWrapping;
-    floorTexture.wrapT = THREE.RepeatWrapping;
-    floorTexture.repeat.set( 2, 2 );
-    floorMaterial = new THREE.MeshLambertMaterial({map: floorTexture, side: THREE.DoubleSide});
     
 
 
@@ -218,10 +201,7 @@ function init(){
 
 
     wallsId = meshMap["0-0"].split("-").slice(2);
-
-    /* LIGHTS */
-    var ambLight = new THREE.AmbientLight( 0xffffff );
-    
+  
 
     updateInfo();
 }

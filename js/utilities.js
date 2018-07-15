@@ -28,7 +28,6 @@ function directionToWall(dir){
 
 //check if pos is inside the rendering grid
 function checkGrid(pos){
-    //if((Math.abs(pos[0])>Math.abs(newGridPos[0])+halfGrid)||(Math.abs(pos[1])>Math.abs(newGridPos[1])+halfGrid)){
     return (pointDistance(pos,newGridPos) <= halfGrid)
 }
 

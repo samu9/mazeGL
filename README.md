@@ -1,6 +1,5 @@
 # mazeGL
 ### An endless randomly generated maze made with WebGL and the Three.js library.
-
 ##### Just launch "index.html" to run.
 
 
