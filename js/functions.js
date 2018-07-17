@@ -128,7 +128,7 @@ function genLight(pos,dir){
 }
 
 function remLight(pos){
-    //it there's no light already
+    //there's no light already
     if(checkMap(lightMap,[pos[0],pos[1]])) return false;
 
     var remIds = lightMap[pos[0] + "-" + pos[1]].split("-");
